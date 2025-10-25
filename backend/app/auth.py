@@ -29,6 +29,7 @@ def google_signin():
             current_app.config['GOOGLE_CLIENT_ID'])
         users_email=id_info['email']
         user_name=id_info.get('name') #just getting info from token if verified
+        google_user_id=id_info['sub'] #sub for subject
 
         #query to see if there is any record
         user=User.objects(email=users_email).first()
@@ -37,7 +38,8 @@ def google_signin():
             #registers user
             user=User(
                 email=users_email,
-                username=user_name
+                username=user_name,
+                google_id=google_user_id
             )
             user.save()
         access_token=create_access_token(identity=str(user.id))
