@@ -1,1 +1,9 @@
 venv/
+instance/
+
+#python
+__pycache__/
+*.pyc 
+
+#secrets
+instance/
