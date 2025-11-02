@@ -1,8 +1,35 @@
 #blueprint for database
 #pip install flask flask-mongoengine
 from . import db #imports the database from init file
+from datetime import datetime
+
 class User(db.document): #idk the database set up yet
     email= db.StringField(required=True, unique=True)
     username = db.StringField(required=True)
     google_id = db.StringField() #this is just to store the unique id google gives us back
 
+class ParkingSpot(db.Document):
+    # Required fields
+    title = db.StringField(required=True, max_length=100)
+    lotnumber = db.StringField(required = True, max_length=20)
+    
+    
+    # Owner reference
+    owner = db.ReferenceField(User, required=True)
+    
+    # Timestamps
+    created_at = db.DateTimeField(default=datetime.now)
+    updated_at = db.DateTimeField(default=datetime.now)
+    
+    meta = {
+        'collection': 'parking_spots',
+        'indexes': [
+            'owner'
+        ]
+    }
+    
+    def save(self, *args, **kwargs):
+        if not self.created_at:
+            self.created_at = datetime.now()
+        self.updated_at = datetime.now()
+        return super(ParkingSpot, self).save(*args, **kwargs)
