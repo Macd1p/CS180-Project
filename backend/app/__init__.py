@@ -15,5 +15,7 @@ def create_app():
     from . import auth
     app.register_blueprint(auth.bp)
 
+    from . import parking
+    app.register_blueprint(parking.bp)
 
     return app
