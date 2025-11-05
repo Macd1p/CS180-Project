@@ -15,7 +15,7 @@ auth_bp=Blueprint('auth',__name__,url_prefix='/auth')
 #this function is handling the signing in and will let our users make a account
 def google_signin():
     # this is where I get the token from frontend
-    data=request.json()
+    data=request.json
     google_token= data.get('token')
 
     if not google_token:
@@ -32,7 +32,7 @@ def google_signin():
         google_user_id=id_info['sub'] #sub for subject
 
         #query to see if there is any record
-        user=User.objects(email=users_email).first()
+        user=User.objects(google_id=google_user_id).first()
 
         if not user:
             #registers user
@@ -42,6 +42,9 @@ def google_signin():
                 google_id=google_user_id
             )
             user.save()
+            print(f'{users_email} is registered')
+        else:
+            print(f'{users_email} logged in')
         access_token=create_access_token(identity=str(user.id))
 
         return jsonify(access_token=access_token),200 #sending the access token

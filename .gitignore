@@ -1,0 +1,8 @@
+backend/venv/
+backend/instance/
+
+#python
+backend/__pycache__/
+backend/*.pyc 
+
+#secrets
