@@ -29,6 +29,8 @@ def create_parking_spot():
             title=data['title'],
             description=data.get('description', ''),
             lotnumber = data['lotnumber'],
+            url_for_images=data['url_for_images'],
+            tags=data['tags'],
             owner=user
         )
         
@@ -60,6 +62,8 @@ def get_parking_spots():
                 "title": spot.title,
                 "lotnumber": spot.lotnumber,
                 "description": spot.description,
+                "url_for_images": spot.url_for_images,
+                "tags": spot.tags,
                 "owner": spot.owner.username
             })
         
