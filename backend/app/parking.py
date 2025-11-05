@@ -73,5 +73,17 @@ def get_parking_spots():
 @parking_bp.route('/generate-signature', methods=['POST'])
 @jwt_required() #checks the the token from user
 def upload_permission():
-    currtime=time.clock_gettime()
+    currtime=int(time.time())
+    cloud_secret=current_app.config['CLOUDINARY_API_SECRET']
+    clouds_api_key= current_app.config['CLOUDINARY_API_KEY']
+    clouds_name=current_app.config['CLOUDINARY_CLOUD_NAME']
     
+    payload_to_sign={"timestamp":currtime}
+    permission_signature=cloudinary.utils.api_sign_request(payload_to_sign,cloud_secret)
+
+    return jsonify({
+        "timestamp": currtime,
+        "signature": permission_signature,
+        "cloud_name": clouds_name,
+        "api_key": clouds_api_key,
+    }),200
