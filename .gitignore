@@ -4,5 +4,5 @@ backend/instance/
 #python
 backend/__pycache__/
 backend/*.pyc 
-
+backend/app/__pycache__
 #secrets
