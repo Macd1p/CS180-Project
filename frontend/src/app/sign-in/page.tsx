@@ -1,22 +1,88 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type FormState = { email: string; password: string; remember: boolean };
+
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
 
 export default function SignInPage() {
   const [form, setForm] = useState<FormState>({ email: "", password: "", remember: false });
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
+  const router = useRouter();
+  const params = useSearchParams();
+  const next = params.get("next") || "/parking";
+
+  // ---- Google Identity Services setup ----
+  const btnRef = useRef<HTMLDivElement>(null);
+  const [gisReady, setGisReady] = useState(false);
+
+  // load the GIS script once
+  useEffect(() => {
+    const id = "google-identity";
+    if (document.getElementById(id)) {
+      setGisReady(true);
+      return;
+    }
+    const s = document.createElement("script");
+    s.id = id;
+    s.src = "https://accounts.google.com/gsi/client";
+    s.async = true;
+    s.defer = true;
+    s.onload = () => setGisReady(true);
+    document.head.appendChild(s);
+  }, []);
+
+  // render the Google button when ready
+  useEffect(() => {
+    if (!gisReady || !window.google || !btnRef.current) return;
+
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
+    window.google.accounts.id.initialize({
+      client_id: clientId,
+      callback: async (resp: any) => {
+        try {
+          const idToken = resp.credential as string;
+          const r = await fetch("/api/auth/google", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: idToken }),
+          });
+          if (!r.ok) {
+            const j = await r.json().catch(() => ({}));
+            throw new Error(j?.error || "Google sign-in failed");
+          }
+          router.push(next);
+        } catch (e: any) {
+          setError(e?.message || "Google sign-in failed");
+        }
+      },
+    });
+
+    window.google.accounts.id.renderButton(btnRef.current, {
+      type: "standard",
+      shape: "pill",
+      theme: "outline",
+      size: "large",
+      text: "continue_with",
+      logo_alignment: "left",
+      width: 360,
+    });
+  }, [gisReady, router, next]);
+
+  // ---- (Optional) Email/password flow you already had ----
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    // very light client validation
     if (!form.email.includes("@")) return setError("Enter a valid email.");
     if (form.password.length < 6) return setError("Password must be at least 6 characters.");
 
@@ -33,8 +99,7 @@ export default function SignInPage() {
         throw new Error(j?.error || "Invalid credentials");
       }
 
-      // success — in a real app you'd set an httpOnly cookie server-side.
-      router.push("/parking");
+      router.push(next);
     } catch (err: any) {
       setError(err.message || "Sign-in failed");
     } finally {
@@ -45,8 +110,11 @@ export default function SignInPage() {
   return (
     <main className="mx-auto max-w-md px-4 py-12">
       <h1 className="text-2xl font-bold">Sign in</h1>
-      <p className="mt-1 text-sm text-gray-600">Use your email and password to continue.</p>
+      <p className="mt-1 text-sm text-gray-600">
+        You can browse spots without an account. To reserve or create a post, sign in.
+      </p>
 
+      {/* Email/password (optional) */}
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <div>
           <label className="block text-sm font-medium">Email</label>
@@ -94,15 +162,23 @@ export default function SignInPage() {
         >
           {loading ? "Signing in…" : "Sign in"}
         </button>
-
-        <button
-          type="button"
-          onClick={() => alert("TODO: OAuth provider")}
-          className="w-full rounded-xl border py-2 font-semibold hover:bg-gray-50"
-        >
-          Continue with Google (demo)
-        </button>
       </form>
+
+      {/* Divider */}
+      <div className="my-6 flex items-center gap-3 text-xs text-gray-500">
+        <div className="h-px flex-1 bg-gray-200" />
+        <span>or</span>
+        <div className="h-px flex-1 bg-gray-200" />
+      </div>
+
+      {/* Google Sign-in */}
+      <div className="rounded-2xl border p-4">
+        <div ref={btnRef} className="flex justify-center" />
+      </div>
+
+      <p className="mt-4 text-sm text-gray-600">
+        You’ll go to: <span className="font-mono">{next}</span>
+      </p>
 
       <p className="mt-4 text-sm text-gray-600">
         Don’t have an account?{" "}
@@ -113,4 +189,5 @@ export default function SignInPage() {
     </main>
   );
 }
+
 
