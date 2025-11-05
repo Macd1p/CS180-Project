@@ -5,11 +5,11 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/:path*", // Apply this rule to all routes
+        source: "/:path*", // applys this rule to all routes
         headers: [
           {
             key: "Cross-Origin-Opener-Policy",
-            value: "same-origin-allow-popups", //should fix that google cross origin error
+            value: "same-origin-allow-popups", //fixes that google cross origin error
           },
         ],
       },

@@ -1,6 +1,6 @@
 from app import create_app
 
-
+#runs backend function create app
 app = create_app()
 
 if __name__ == '__main__':
