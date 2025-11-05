@@ -49,7 +49,7 @@ def create_parking_spot():
 @parking_bp.route('/spots', methods=['GET'])
 def get_parking_spots():
     try:
-        query = query
+        query = ParkingSpot.objects()
         
         spots = query.order_by('-created_at')
         
