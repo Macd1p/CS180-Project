@@ -1,6 +1,5 @@
 #where app is created
 from flask import Flask
-
 from flask_mongoengine import MongoEngine
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager  
@@ -24,7 +23,9 @@ def create_app():
     db.init_app(app) #this connects mongoengine to the app
     jwt.init_app(app) #connects the jtw tool for our files
     
-    CORS(app, resources={r"/auth/*":{"origins":"http://localhost:3000"}})
+    CORS(app, resources={
+    r"/auth/*": {"origins": "http://localhost:3000"},
+    r"/api/*": {"origins": "http://localhost:3000"} })
     from . import auth
     app.register_blueprint(auth.auth_bp)
 

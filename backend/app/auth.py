@@ -11,7 +11,7 @@ from .model import User
 
 auth_bp=Blueprint('auth',__name__,url_prefix='/auth')
 
-@auth_bp.route('/google-signin', method=(['POST']))
+@auth_bp.route('/google-signin', methods=['POST'])
 #this function is handling the signing in and will let our users make a account
 def google_signin():
     # this is where I get the token from frontend
