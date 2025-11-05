@@ -3,12 +3,11 @@ from flask import Flask
 
 from flask_mongoengine import MongoEngine
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager  
-from flask_bcrypt import Bcrypt           
+from flask_jwt_extended import JWTManager        
 
 db=MongoEngine()
 jwt = JWTManager()
-bcrypt = Bcrypt()
+
 
 def create_app():
     
@@ -17,8 +16,8 @@ def create_app():
     app.config.from_pyfile('config.py',silent=True) #this just loads the configs from instance
 
     db.init_app(app) #this connects mongoengine to the app
-    jwt.init_app(app)
-    bcrypt.init_app(app)
+    jwt.init_app(app) #connects the jtw tool for our files
+    
     CORS(app)
     from . import auth
     app.register_blueprint(auth.auth_bp)
