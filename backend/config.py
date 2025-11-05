@@ -10,3 +10,4 @@ MONGODB_SETTINGS = {
 # Placeholders for Google keys
 GOOGLE_CLIENT_ID = None
 GOOGLE_CLIENT_SECRET = None
+JWT_SECRET_KEY = None
