@@ -51,7 +51,7 @@ export default function SignInPage() {
       callback: async (resp: any) => {
         try {
           const idToken = resp.credential as string;
-          const r = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google-signin`, {
+          const r = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google-signin`, {//uses correct port instead of its own 3000 port
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ token: idToken }),
@@ -83,12 +83,12 @@ export default function SignInPage() {
     e.preventDefault();
     setError("");
 
-    if (!form.email.includes("@")) return setError("Enter a valid email.");
+    if (!form.email.includes("@")) return setError("Enter a valid email."); 
     if (form.password.length < 6) return setError("Password must be at least 6 characters.");
 
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/login`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/login`, { //uses correct port now
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

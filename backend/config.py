@@ -12,4 +12,4 @@ GOOGLE_CLIENT_ID = None
 GOOGLE_CLIENT_SECRET = None
 JWT_SECRET_KEY = None
 
-WTF_CSRF_ENABLED = False
+WTF_CSRF_ENABLED = False #makes sure csrf does not work for blocking

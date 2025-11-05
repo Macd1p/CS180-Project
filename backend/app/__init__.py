@@ -25,7 +25,7 @@ def create_app():
     
     CORS(app, resources={
     r"/auth/*": {"origins": "http://localhost:3000"},
-    r"/api/*": {"origins": "http://localhost:3000"} })
+    r"/api/*": {"origins": "http://localhost:3000"} })#allows for connection between frontend and backend as they are diff ports
     from . import auth
     app.register_blueprint(auth.auth_bp)
 
