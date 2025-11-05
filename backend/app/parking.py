@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from .model import ParkingSpot, User
 from datetime import datetime
+import cloudinary.utils
+import time
 
 parking_bp = Blueprint('parking', __name__, url_prefix='/api/parking')
 
@@ -66,3 +68,10 @@ def get_parking_spots():
     except Exception as e:
         current_app.logger.error(f"Error fetching parking spots: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
+    
+
+@parking_bp.route('/generate-signature', methods=['POST'])
+@jwt_required() #checks the the token from user
+def upload_permission():
+    currtime=time.clock_gettime()
+    
