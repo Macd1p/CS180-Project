@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from .model import ParkingSpot, User
 from datetime import datetime
+import cloudinary.utils
+import time
 
 parking_bp = Blueprint('parking', __name__, url_prefix='/api/parking')
 
@@ -27,6 +29,8 @@ def create_parking_spot():
             title=data['title'],
             description=data.get('description', ''),
             lotnumber = data['lotnumber'],
+            url_for_images=data['url_for_images'],
+            tags=data['tags'],
             owner=user
         )
         
@@ -47,7 +51,7 @@ def create_parking_spot():
 @parking_bp.route('/spots', methods=['GET'])
 def get_parking_spots():
     try:
-        query = query
+        query = ParkingSpot.objects()
         
         spots = query.order_by('-created_at')
         
@@ -58,6 +62,8 @@ def get_parking_spots():
                 "title": spot.title,
                 "lotnumber": spot.lotnumber,
                 "description": spot.description,
+                "url_for_images": spot.url_for_images,
+                "tags": spot.tags,
                 "owner": spot.owner.username
             })
         
@@ -66,3 +72,22 @@ def get_parking_spots():
     except Exception as e:
         current_app.logger.error(f"Error fetching parking spots: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
+    
+
+@parking_bp.route('/generate-signature', methods=['POST'])
+@jwt_required() #checks the the token from user
+def upload_permission():
+    currtime=int(time.time())
+    cloud_secret=current_app.config['CLOUDINARY_API_SECRET']
+    clouds_api_key= current_app.config['CLOUDINARY_API_KEY']
+    clouds_name=current_app.config['CLOUDINARY_CLOUD_NAME']
+    
+    payload_to_sign={"timestamp":currtime}
+    permission_signature=cloudinary.utils.api_sign_request(payload_to_sign,cloud_secret)
+
+    return jsonify({
+        "timestamp": currtime,
+        "signature": permission_signature,
+        "cloud_name": clouds_name,
+        "api_key": clouds_api_key,
+    }),200

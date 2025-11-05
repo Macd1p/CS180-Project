@@ -51,7 +51,7 @@ export default function SignInPage() {
       callback: async (resp: any) => {
         try {
           const idToken = resp.credential as string;
-          const r = await fetch("/api/auth/google", {
+          const r = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google-signin`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ token: idToken }),
@@ -88,7 +88,7 @@ export default function SignInPage() {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/sign-in", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
