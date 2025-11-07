@@ -195,7 +195,7 @@ export default function Page() {
             GET IN TOUCH
           </p>
           <h2 className="mb-2 text-3xl font-bold">
-            We&apos;re a small dev team building FindMySpot.
+            Contact the Team
           </h2>
           <p className="mb-8 text-sm text-gray-600 md:text-base">
             Have feedback, want to test the app, or interested in collaborating?
