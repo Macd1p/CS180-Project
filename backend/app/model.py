@@ -7,6 +7,9 @@ class User(db.Document): #idk the database set up yet
     email= db.StringField(required=True, unique=True)
     username = db.StringField(required=True)
     google_id = db.StringField() #this is just to store the unique id google gives us back
+    password = db.StringField()
+    firstname= db.StringField()
+    lastname= db.StringField()
 
 class ParkingSpot(db.Document):
     
@@ -39,3 +42,4 @@ class ParkingSpot(db.Document):
             self.created_at = datetime.now()
         self.updated_at = datetime.now()
         return super(ParkingSpot, self).save(*args, **kwargs)
+    

@@ -3,11 +3,12 @@ from flask import Flask
 from flask_mongoengine import MongoEngine
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager  
+from flask_bcrypt import Bcrypt
 import cloudinary
 
 db=MongoEngine()
 jwt = JWTManager()
-
+bcrypt = Bcrypt()
 
 def create_app():
     
@@ -19,9 +20,12 @@ def create_app():
         api_key= app.config['CLOUDINARY_API_KEY'],
         api_secret=app.config['CLOUDINARY_API_SECRET']
     )
+    
 
     db.init_app(app) #this connects mongoengine to the app
     jwt.init_app(app) #connects the jtw tool for our files
+    bcrypt.init_app(app)
+    
     
     CORS(app, resources={
     r"/auth/*": {"origins": "http://localhost:3000"},
