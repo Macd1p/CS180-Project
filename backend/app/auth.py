@@ -64,11 +64,15 @@ def register():
     user_password= data.get('password')
 
     user_name = data.get('username')
+
+    user_firstname= data.get('firstname')
+
+    user_lastname= data.get('lastname')
     
     
     #check if entrys are empty and that user does not already exist
-    if not all([user_email, user_password, user_name]):
-        return jsonify({"error": "Missing email, username, or password"}), 400
+    if not all([user_email, user_password, user_name,user_firstname,user_lastname]):
+        return jsonify({"error": "Missing email, username, or password,or first and last name"}), 400
     
     
     if User.objects(email=user_email).first():
@@ -83,7 +87,9 @@ def register():
     user=User(
         email=user_email,
         password=hash_password,
-        username=user_name
+        username=user_name,
+        firstname= user_firstname,
+        lastname= user_lastname
     )
     user.save()
     return jsonify({

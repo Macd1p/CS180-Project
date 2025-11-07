@@ -8,6 +8,8 @@ class User(db.Document): #idk the database set up yet
     username = db.StringField(required=True)
     google_id = db.StringField() #this is just to store the unique id google gives us back
     password = db.StringField()
+    firstname= db.StringField()
+    lastname= db.StringField()
 
 class ParkingSpot(db.Document):
     
