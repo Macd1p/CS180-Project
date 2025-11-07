@@ -1,11 +1,11 @@
+// app/layout.tsx
 import type { Metadata } from "next";
-import Link from "next/link";
 import "../styles/globals.css";
 import { AuthProvider } from "./providers/AuthProvider";
-import HeaderAuth from "./components/HeaderAuth"; // ⬅️ add this
+import SiteHeader from "./components/SiteHeader";
 
 export const metadata: Metadata = {
-  title: " Find My Spot",
+  title: "Find My Spot",
   description: "Parking finder (demo)",
 };
 
@@ -26,30 +26,16 @@ export default function RootLayout({
             Skip to content
           </a>
 
-          {/* Header */}
-          <header className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur">
-            <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-              <Link href="/" className="flex items-center gap-2">
-                <span className="grid h-8 w-8 place-items-center rounded-xl bg-black font-bold text-white">
-                  P
-                </span>
-                <span className="text-lg font-semibold tracking-tight">
-                  FindMySpot
-                </span>
-              </Link>
-
-              {/* Auth-aware actions */}
-              <HeaderAuth />
-            </div>
-          </header>
+          {/* Sticky navbar with active section underline */}
+          <SiteHeader />
 
           {/* Page content */}
           <main id="main">{children}</main>
 
-          {/* Footer */}
+          {/* Minimal footer: just FindMySpot */}
           <footer className="border-t">
             <div className="mx-auto max-w-6xl px-4 py-8 text-sm text-gray-600">
-              © {new Date().getFullYear()} Find My Spot
+              FindMySpot
             </div>
           </footer>
         </AuthProvider>
