@@ -10,6 +10,8 @@ class User(db.Document): #idk the database set up yet
     password = db.StringField()
     firstname= db.StringField()
     lastname= db.StringField()
+    login_method= db.StringField()
+
 
 class ParkingSpot(db.Document):
     
