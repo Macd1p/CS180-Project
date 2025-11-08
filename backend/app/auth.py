@@ -40,10 +40,15 @@ def google_signin():
             user=User(
                 email=users_email,
                 username=user_name,
-                google_id=google_user_id
+                google_id=google_user_id,
+                login_method= 'google'
             )
-            user.save()
-            print(f'{users_email} is registered')
+            try:
+                user.save()
+                print(f'{users_email} is registered')
+            except Exception as e:
+                print(f"Database save failed for new Google user: {e}")
+                return jsonify({"error": "Registration failed due to server error"}), 500
         else:
             print(f'{users_email} logged in')
         access_token=create_access_token(identity=str(user.id))
@@ -69,7 +74,6 @@ def register():
 
     user_lastname= data.get('lastname')
     
-    
     #check if entrys are empty and that user does not already exist
     if not all([user_email, user_password, user_name,user_firstname,user_lastname]):
         return jsonify({"error": "Missing email, username, or password,or first and last name"}), 400
@@ -89,7 +93,8 @@ def register():
         password=hash_password,
         username=user_name,
         firstname= user_firstname,
-        lastname= user_lastname
+        lastname= user_lastname,
+        login_method='local'
     )
     user.save()
     return jsonify({
@@ -115,7 +120,10 @@ def login():
     user= User.objects(email=user_email).first()
     #make sure there is already an account
     if not user:
-        return jsonify({"error": "no account exist"}), 409
+        return jsonify({"error": "invalid email or password"}), 401
+    
+    if user.login_method=='google':
+        return jsonify({"error":"no password set for this email make an account"}), 401
     #check if password is correct
     checker_password= bcrypt.check_password_hash(user.password,user_password)
 
