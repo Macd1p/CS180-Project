@@ -1,4 +1,3 @@
-// src/app/parking/_data.ts
 export type Amenity = "EV charging" | "Covered" | "Security" | "24/7" | "Valet";
 
 export interface Parking {
@@ -7,7 +6,7 @@ export interface Parking {
   address: string;
   city: string;
   pricePerHour: number; // USD
-  distanceMeters: number; // from user/search point
+  distanceMeters: number; // from user/search point (demo only)
   rating: number; // 0..5
   amenities: Amenity[];
   maxHeightMeters?: number;
@@ -18,6 +17,7 @@ export interface Parking {
 }
 
 export const DEMO_SPOTS: Parking[] = [
+  // Existing ones
   {
     id: "p1",
     name: "Downtown Center Garage",
@@ -63,4 +63,207 @@ export const DEMO_SPOTS: Parking[] = [
     imageUrl: "/images/sf-parking.jpg",
     userName: "SFDriver",
   },
+
+  // More LA downtown / nearby
+  {
+    id: "p4",
+    name: "Staples Center Parking Deck",
+    address: "1111 S Figueroa St",
+    city: "Los Angeles, CA",
+    pricePerHour: 7.0,
+    distanceMeters: 600,
+    rating: 4.3,
+    amenities: ["Covered", "Security", "24/7", "Valet"],
+    maxHeightMeters: 2.1,
+    lat: 34.043,
+    lng: -118.267,
+    imageUrl: "/images/how-step2.jpg",
+    userName: "LALaker",
+  },
+  {
+    id: "p5",
+    name: "Pershing Square Garage",
+    address: "530 S Olive St",
+    city: "Los Angeles, CA",
+    pricePerHour: 4.0,
+    distanceMeters: 450,
+    rating: 4.0,
+    amenities: ["Covered", "Security"],
+    maxHeightMeters: 1.98,
+    lat: 34.0486,
+    lng: -118.253,
+    imageUrl: "/images/how-step2.jpg",
+    userName: "DTLAworker",
+  },
+  {
+    id: "p6",
+    name: "Little Tokyo Public Parking",
+    address: "100 N Judge John Aiso St",
+    city: "Los Angeles, CA",
+    pricePerHour: 2.5,
+    distanceMeters: 1200,
+    rating: 4.2,
+    amenities: ["Covered", "24/7"],
+    maxHeightMeters: 2.0,
+    lat: 34.0505,
+    lng: -118.2405,
+    imageUrl: "/images/how-step2.jpg",
+    userName: "Sushi4Life",
+  },
+  {
+    id: "p7",
+    name: "Arts District Surface Lot",
+    address: "600 S Santa Fe Ave",
+    city: "Los Angeles, CA",
+    pricePerHour: 3.5,
+    distanceMeters: 1800,
+    rating: 4.1,
+    amenities: ["Security"],
+    lat: 34.0358,
+    lng: -118.2339,
+    imageUrl: "/images/how-step2.jpg",
+    userName: "StreetArtFan",
+  },
+  {
+    id: "p8",
+    name: "LA Live Evening Lot",
+    address: "800 W Olympic Blvd",
+    city: "Los Angeles, CA",
+    pricePerHour: 8.0,
+    distanceMeters: 900,
+    rating: 4.5,
+    amenities: ["Covered", "Security", "Valet"],
+    maxHeightMeters: 2.05,
+    lat: 34.0457,
+    lng: -118.2664,
+    imageUrl: "/images/how-step2.jpg",
+    userName: "ConcertGoer",
+  },
+
+  // EV-focused + cheaper lots
+  {
+    id: "p9",
+    name: "Chinatown EV Lot",
+    address: "901 N Broadway",
+    city: "Los Angeles, CA",
+    pricePerHour: 2.0,
+    distanceMeters: 2100,
+    rating: 4.0,
+    amenities: ["EV charging", "Security"],
+    lat: 34.063,
+    lng: -118.238,
+    imageUrl: "/images/how-step2.jpg",
+    userName: "EVdaily",
+  },
+  {
+    id: "p10",
+    name: "Echo Park Lake Street Parking",
+    address: "751 Echo Park Ave",
+    city: "Los Angeles, CA",
+    pricePerHour: 1.5,
+    distanceMeters: 3200,
+    rating: 4.2,
+    amenities: [],
+    lat: 34.0783,
+    lng: -118.258,
+    imageUrl: "/images/how-step2.jpg",
+    userName: "SundayWalker",
+  },
+
+  // A few farther but still SoCal to test distance filter
+  {
+    id: "p11",
+    name: "Santa Monica Pier Garage",
+    address: "1550 Pacific Coast Hwy",
+    city: "Santa Monica, CA",
+    pricePerHour: 5.5,
+    distanceMeters: 18000,
+    rating: 4.7,
+    amenities: ["Covered", "Security", "24/7"],
+    maxHeightMeters: 2.1,
+    lat: 34.010,
+    lng: -118.496,
+    imageUrl: "/images/how-step2.jpg",
+    userName: "BeachDay",
+  },
+  {
+    id: "p12",
+    name: "Century City Mall Parking",
+    address: "10250 Santa Monica Blvd",
+    city: "Los Angeles, CA",
+    pricePerHour: 4.0,
+    distanceMeters: 14000,
+    rating: 4.3,
+    amenities: ["Covered", "Security", "Valet"],
+    maxHeightMeters: 2.1,
+    lat: 34.0594,
+    lng: -118.4186,
+    imageUrl: "/images/how-step2.jpg",
+    userName: "ShopNChill",
+  },
+  {
+    id: "p13",
+    name: "LAX Economy Parking",
+    address: "6100 W 94th St",
+    city: "Los Angeles, CA",
+    pricePerHour: 3.25,
+    distanceMeters: 20000,
+    rating: 4.0,
+    amenities: ["24/7", "Security", "Valet"],
+    maxHeightMeters: 2.2,
+    lat: 33.947,
+    lng: -118.395,
+    imageUrl: "/images/how-step2.jpg",
+    userName: "FrequentFlyer",
+  },
+
+  // More SF / Bay Area
+  {
+    id: "p14",
+    name: "Embarcadero Center Garage",
+    address: "1 Embarcadero Center",
+    city: "San Francisco, CA",
+    pricePerHour: 7.0,
+    distanceMeters: 6200,
+    rating: 4.4,
+    amenities: ["Covered", "Security", "24/7"],
+    maxHeightMeters: 2.0,
+    lat: 37.7952,
+    lng: -122.3971,
+    imageUrl: "/images/sf-parking.jpg",
+    userName: "BayBridgeView",
+  },
+  {
+    id: "p15",
+    name: "SoMa Tech Hub Lot",
+    address: "600 Howard St",
+    city: "San Francisco, CA",
+    pricePerHour: 6.0,
+    distanceMeters: 5800,
+    rating: 4.1,
+    amenities: ["EV charging", "Covered"],
+    maxHeightMeters: 1.95,
+    lat: 37.7878,
+    lng: -122.3985,
+    imageUrl: "/images/sf-parking.jpg",
+    userName: "CoderOnTheGo",
+  },
+
+  // Orange County one, just to have a different city string
+  {
+    id: "p16",
+    name: "Anaheim Convention Center Parking",
+    address: "800 W Katella Ave",
+    city: "Anaheim, CA",
+    pricePerHour: 4.0,
+    distanceMeters: 42000,
+    rating: 4.3,
+    amenities: ["Covered", "Security", "24/7"],
+    maxHeightMeters: 2.1,
+    lat: 33.8004,
+    lng: -117.9208,
+    imageUrl: "/images/how-step2.jpg",
+    userName: "ThemeParkDay",
+  },
 ];
+
