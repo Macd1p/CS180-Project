@@ -1,20 +1,26 @@
-// src/app/parking/MapView.tsx
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
 import "leaflet/dist/leaflet.css";
 import type { Parking } from "./_data";
+import { distanceInMeters } from "./geo";
 
 interface MapViewProps {
   spots: Parking[];
   onMarkerClick: (id: string) => void; // navigate to post page
+  onResetFilters?: () => void;         // <- reset handler from parent
+  showReset?: boolean;                 // <- should we show the button?
 }
 
-export default function MapView({ spots, onMarkerClick }: MapViewProps) {
+export default function MapView({
+  spots,
+  onMarkerClick,
+  onResetFilters,
+  showReset = false,
+}: MapViewProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapInstance = useRef<any | null>(null);
   const markersRef = useRef<any[]>([]);
-  const lockedMarkerRef = useRef<any | null>(null);
   const [L, setL] = useState<any | null>(null); // Leaflet module
 
   // Load Leaflet on the client only
@@ -23,7 +29,6 @@ export default function MapView({ spots, onMarkerClick }: MapViewProps) {
     (async () => {
       const mod = await import("leaflet");
       if (!mounted) return;
-      // Some bundlers put Leaflet on mod.default; others on mod itself
       setL((mod as any).default ?? mod);
     })();
     return () => {
@@ -67,27 +72,45 @@ export default function MapView({ spots, onMarkerClick }: MapViewProps) {
     // Remove previous markers
     markersRef.current.forEach((m) => map.removeLayer(m));
     markersRef.current = [];
-    lockedMarkerRef.current = null;
 
     if (!spots.length) return;
 
     const bounds = L.latLngBounds([]);
 
-    const closeAllPopups = () => {
-      markersRef.current.forEach((m) => m.closePopup());
-      lockedMarkerRef.current = null;
-    };
-
-    // clicking empty map -> unlock and close
-    map.off("click");
-    map.on("click", () => {
-      closeAllPopups();
-    });
+    // Store displayed marker positions to avoid overlap
+    const adjustedPositions: { lat: number; lng: number }[] = [];
 
     spots.forEach((p) => {
+      let displayLat = p.lat;
+      let displayLng = p.lng;
+
+      // ---- simple overlap handling ----
+      const thresholdMeters = 80; // "too close" threshold
+      let overlapsSoFar = 0;
+
+      adjustedPositions.forEach((pos) => {
+        const d = distanceInMeters(displayLat, displayLng, pos.lat, pos.lng);
+        if (d < thresholdMeters) overlapsSoFar += 1;
+      });
+
+      if (overlapsSoFar > 0) {
+        const angle = (overlapsSoFar * 45 * Math.PI) / 180; // 45° steps
+        const radiusMeters = 25;
+
+        const latRad = (displayLat * Math.PI) / 180;
+        const dLat = (radiusMeters / 111_320) * Math.cos(angle);
+        const dLng =
+          (radiusMeters / (111_320 * Math.cos(latRad))) * Math.sin(angle);
+
+        displayLat += dLat;
+        displayLng += dLng;
+      }
+
+      adjustedPositions.push({ lat: displayLat, lng: displayLng });
+      // ---------------------------------
+
       const avatarSrc = (p as any).userAvatarUrl ?? p.imageUrl;
 
-      // Avatar + oval label bubble
       const icon = L.divIcon({
         className: "",
         html: `
@@ -101,12 +124,14 @@ export default function MapView({ spots, onMarkerClick }: MapViewProps) {
           </div>
         `,
         iconSize: [230, 70],
-        iconAnchor: [115, 70], // center bottom
+        iconAnchor: [115, 70],
       });
 
-      const marker = L.marker([p.lat, p.lng], { icon }).addTo(map);
+      const marker = L.marker([displayLat, displayLng], {
+        icon,
+        riseOnHover: true,
+      }).addTo(map);
 
-      // Popup HTML with "View post" button
       const popupHtml = `
         <div class="parking-popup">
           <div class="parking-popup-header">
@@ -135,94 +160,57 @@ export default function MapView({ spots, onMarkerClick }: MapViewProps) {
 
       const popup = L.popup({
         closeButton: false,
-        autoClose: false,
-        closeOnClick: false,
       }).setContent(popupHtml);
 
       marker.bindPopup(popup);
 
-      let closeTimeout: any = null;
-
-      const clearCloseTimeout = () => {
-        if (closeTimeout) {
-          clearTimeout(closeTimeout);
-          closeTimeout = null;
-        }
-      };
-
-      const scheduleCloseIfNotLocked = () => {
-        clearCloseTimeout();
-        if (lockedMarkerRef.current === marker) return; // don't close if locked
-        closeTimeout = setTimeout(() => {
-          marker.closePopup();
-        }, 150);
-      };
-
-      // Hover: show popup (unless some other marker is locked)
-      marker.on("mouseover", () => {
-        clearCloseTimeout();
-        if (
-          lockedMarkerRef.current &&
-          lockedMarkerRef.current !== marker
-        ) {
-          return;
-        }
-        marker.openPopup();
-      });
-
-      marker.on("mouseout", () => {
-        scheduleCloseIfNotLocked();
-      });
-
-      // When popup is rendered, add hover + button listeners
       popup.on("add", () => {
         const el = popup.getElement();
         if (!el) return;
 
-        el.addEventListener("mouseenter", () => {
-          clearCloseTimeout();
-        });
-
-        el.addEventListener("mouseleave", () => {
-          scheduleCloseIfNotLocked();
-        });
-
         const btn = el.querySelector(
           `[data-view-post="${p.id}"]`
         ) as HTMLButtonElement | null;
-        
+
         if (btn) {
           btn.addEventListener("click", (e) => {
             e.stopPropagation();
-            onMarkerClick(p.id); // navigate to post page
+            onMarkerClick(p.id);
           });
-        }        
+        }
       });
 
-      // Click: lock this popup open
+      // Click-only popup
       marker.on("click", () => {
-        clearCloseTimeout();
-        if (lockedMarkerRef.current && lockedMarkerRef.current !== marker) {
-          lockedMarkerRef.current.closePopup();
-        }
-        lockedMarkerRef.current = marker;
         marker.openPopup();
       });
 
       markersRef.current.push(marker);
-      bounds.extend([p.lat, p.lng]);
+      bounds.extend([displayLat, displayLng]);
     });
 
     map.fitBounds(bounds, { padding: [40, 40] });
   }, [L, spots, onMarkerClick]);
 
   return (
-    <div
-      ref={mapRef}
-      className="h-[70vh] w-full rounded-2xl border overflow-hidden"
-    />
+    <div className="relative h-[70vh] w-full rounded-2xl border overflow-hidden">
+      <div ref={mapRef} className="h-full w-full" />
+
+      {onResetFilters && showReset && (
+        <button
+          type="button"
+          onClick={onResetFilters}
+          className="absolute right-4 top-4 z-[1000] rounded-full border bg-white/90 px-3 py-1.5 text-xs font-medium shadow-md hover:bg-violet-50"
+        >
+          Reset view
+        </button>
+      )}
+    </div>
   );
 }
+
+
+
 
 
 
