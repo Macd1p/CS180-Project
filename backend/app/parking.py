@@ -91,3 +91,60 @@ def upload_permission():
         "cloud_name": clouds_name,
         "api_key": clouds_api_key,
     }),200
+
+
+@parking_bp.route('/update-post', methods=['PUT'])
+@jwt_required()
+def update_post(post_id):
+    try:
+        current_user_id = get_jwt_identity() #get current user id from token
+        user = User.objects(id=current_user_id).first()
+        
+        if not user: #user not found
+            return jsonify({"error": "User not found"}), 404
+        
+        post_to_update= ParkingSpot.objects(id=post_id, owner=user).first() #finds document with id and owner
+        
+        if not post_to_update:  #missing post id
+            return jsonify({"error": "Missing POST ID"}), 400
+        
+        data= request.get_json()
+        
+        # update fields if they exist in the request
+        for field in ['title', 'description', 'url_for_images', 'tags']:
+            if field in data:
+                setattr(post_to_update, field, data[field])
+        
+        post_to_update.save()
+        
+        return jsonify({ #success message
+            "message": "Parking spot updated successfully",
+            "post":  post_to_update.to_json()    
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Error updating post: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+    
+@parking_bp.route('/<post_id>', methods=['DELETE']) 
+@jwt_required()
+def delete_post(post_id):
+    try:
+        current_user_id = get_jwt_identity() #get current user id from token
+        user = User.objects(id=current_user_id).first()
+        
+        if not user: #user not found
+            return jsonify({"error": "user not found"}), 404
+        
+        post_to_delete = ParkingSpot.objects(id=post_id, owner=user).first()
+        
+        if not post_to_delete: #spot does not exist or user is not owner
+            return jsonify({"error": "post not found or unauthorized"}), 404
+        
+        post_to_delete.delete()
+        
+        return jsonify({"message": "post deleted"}), 200
+        
+    except Exception as e: #general exception catch
+        current_app.logger.error(f"error deleting post: {str(e)}")
+        return jsonify({"error": "internal server error"}), 500
