@@ -72,7 +72,33 @@ def get_parking_spots():
     except Exception as e:
         current_app.logger.error(f"Error fetching parking spots: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
-    
+
+@parking_bp.route('/spots', methods=['GET'])
+def get_single_parking_spot(post_id):
+    try:
+        query = ParkingSpot.objects()
+        
+        spots = query.order_by('-created_at')
+        
+        spots_data = []
+        for spot in spots:
+            if(spot.id == post_id):
+                spots_data.append({
+                    "time_created": spot.created_at,
+                    "id": str(spot.id),
+                    "title": spot.title,
+                    "lotnumber": spot.lotnumber,
+                    "description": spot.description,
+                    "url_for_images": spot.url_for_images,
+                    "tags": spot.tags,
+                    "owner": spot.owner.username
+                })
+        
+        return jsonify({"spots": spots_data}), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Error fetching parking spots: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
 
 @parking_bp.route('/generate-signature', methods=['POST'])
 @jwt_required() #checks the the token from user
