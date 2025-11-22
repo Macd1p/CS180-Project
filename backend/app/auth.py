@@ -20,7 +20,7 @@ def google_signin():
     google_token= data.get('token')
 
     if not google_token:
-        return jsonify({'missing token'}),400
+        return jsonify({'error': 'missing token'}),400
 
     try:
         #verifys token with the google servers
@@ -128,7 +128,7 @@ def login():
     checker_password= bcrypt.check_password_hash(user.password,user_password)
 
     if checker_password == False:
-        return jsonify({"incorrect password"}), 401
+        return jsonify({"error": "incorrect password"}), 401
     #create access token for login and send it
     else:
         access_token = create_access_token(identity=str(user.id))
