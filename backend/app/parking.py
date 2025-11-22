@@ -9,6 +9,7 @@ parking_bp = Blueprint('parking', __name__, url_prefix='/api/parking')
 
 @parking_bp.route('/spots', methods=['POST'])
 @jwt_required()
+
 def create_parking_spot():
     try:
         current_user_id = get_jwt_identity()
