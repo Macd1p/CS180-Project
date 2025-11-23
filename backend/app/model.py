@@ -45,3 +45,16 @@ class ParkingSpot(db.Document):
         self.updated_at = datetime.now()
         return super(ParkingSpot, self).save(*args, **kwargs)
     
+class Comment(db.Document):
+    text = db.StringField(required=True)
+    author = db.ReferenceField('User', required=True)
+    parking_spot = db.ReferenceField('ParkingSpot', required=True)
+    created_at = db.DateTimeField(default=datetime.utcnow)
+    
+    meta = {
+        'collection': 'comments',
+        'indexes': [
+            'parking_spot',
+            'created_at'
+        ]
+    }
