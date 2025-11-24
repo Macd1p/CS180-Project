@@ -9,7 +9,6 @@ parking_bp = Blueprint('parking', __name__, url_prefix='/api/parking')
 
 @parking_bp.route('/spots', methods=['POST'])
 @jwt_required()
-
 def create_parking_spot():
     try:
         current_user_id = get_jwt_identity()
@@ -26,12 +25,16 @@ def create_parking_spot():
             if field not in data:
                 return jsonify({"error": f"Missing required field: {field}"}), 400
         
+        # Extract hashtags from description
+        description = data.get('description', '')
+        tags = extract_hashtags(description)
+        
         parking_spot = ParkingSpot(
             title=data['title'],
-            description=data.get('description', ''),
-            lotnumber = data['lotnumber'],
-            url_for_images=data['url_for_images'],
-            tags=data['tags'],
+            description=description,
+            lotnumber=data['lotnumber'],
+            url_for_images=data.get('url_for_images', []),
+            tags=tags,  # Store extracted hashtags
             owner=user
         )
         
@@ -41,13 +44,16 @@ def create_parking_spot():
             "message": "Parking spot created successfully",
             "spot": {
                 "id": str(parking_spot.id),
-                "title": parking_spot.title
+                "title": parking_spot.title,
+                "tags": parking_spot.tags
             }
         }), 201
         
     except Exception as e:
         current_app.logger.error(f"Error creating parking spot: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
+
+
 
 @parking_bp.route('/spots', methods=['GET'])
 def get_parking_spots():
@@ -102,7 +108,7 @@ def get_single_parking_spot(post_id):
         return jsonify({"error": "Internal server error"}), 500
 
 @parking_bp.route('/generate-signature', methods=['POST'])
-@jwt_required() #checks the the token from user
+@jwt_required() 
 def upload_permission():
     currtime=int(time.time())
     cloud_secret=current_app.config['CLOUDINARY_API_SECRET']
@@ -124,29 +130,37 @@ def upload_permission():
 @jwt_required()
 def update_post(post_id):
     try:
-        current_user_id = get_jwt_identity() #get current user id from token
+        current_user_id = get_jwt_identity()
         user = User.objects(id=current_user_id).first()
         
-        if not user: #user not found
+        if not user:
             return jsonify({"error": "User not found"}), 404
         
-        post_to_update= ParkingSpot.objects(id=post_id, owner=user).first() #finds document with id and owner
+        post_to_update = ParkingSpot.objects(id=post_id, owner=user).first()
         
-        if not post_to_update:  #missing post id
+        if not post_to_update:
             return jsonify({"error": "Missing POST ID"}), 400
         
-        data= request.get_json()
+        data = request.get_json()
         
-        # update fields if they exist in the request
-        for field in ['title', 'description', 'url_for_images', 'tags']:
+        # Update fields if they exist in the request
+        for field in ['title', 'description', 'url_for_images']:
             if field in data:
                 setattr(post_to_update, field, data[field])
         
+        # If description is updated, extract new hashtags
+        if 'description' in data:
+            post_to_update.tags = extract_hashtags(data['description'])
+        
+        # If tags are explicitly provided (optional), use them instead
+        if 'tags' in data:
+            post_to_update.tags = data['tags']
+        
         post_to_update.save()
         
-        return jsonify({ #success message
+        return jsonify({
             "message": "Parking spot updated successfully",
-            "post":  post_to_update.to_json()    
+            "post": post_to_update.to_json()    
         }), 200
         
     except Exception as e:
@@ -157,10 +171,10 @@ def update_post(post_id):
 @jwt_required()
 def delete_post(post_id):
     try:
-        current_user_id = get_jwt_identity() #get current user id from token
+        current_user_id = get_jwt_identity() 
         user = User.objects(id=current_user_id).first()
         
-        if not user: #user not found
+        if not user: 
             return jsonify({"error": "user not found"}), 404
         
         post_to_delete = ParkingSpot.objects(id=post_id, owner=user).first()
@@ -172,6 +186,18 @@ def delete_post(post_id):
         
         return jsonify({"message": "post deleted"}), 200
         
-    except Exception as e: #general exception catch
+    except Exception as e: 
         current_app.logger.error(f"error deleting post: {str(e)}")
         return jsonify({"error": "internal server error"}), 500
+    
+
+# Helper function to extract hashtags from text
+def extract_hashtags(text):
+    if not text:
+        return []
+    
+    import re
+    # Find all words that start with # and are followed by word characters
+    hashtags = re.findall(r'#(\w+)', text)
+    # Return unique hashtags
+    return list(set(hashtags))
