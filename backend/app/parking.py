@@ -9,6 +9,7 @@ parking_bp = Blueprint('parking', __name__, url_prefix='/api/parking')
 
 @parking_bp.route('/spots', methods=['POST'])
 @jwt_required()
+
 def create_parking_spot():
     try:
         current_user_id = get_jwt_identity()
@@ -20,7 +21,7 @@ def create_parking_spot():
         data = request.get_json()
         
         # Validate required fields
-        required_fields = ['title', 'lotnumber']
+        required_fields = ['title', 'address']
         for field in required_fields:
             if field not in data:
                 return jsonify({"error": f"Missing required field: {field}"}), 400
@@ -28,9 +29,9 @@ def create_parking_spot():
         parking_spot = ParkingSpot(
             title=data['title'],
             description=data.get('description', ''),
-            lotnumber = data['lotnumber'],
+            address = data['address'],
             url_for_images=data['url_for_images'],
-            tags=data['tags'],
+            tags=data.get('tags', '').split(),
             owner=user
         )
         
@@ -60,11 +61,12 @@ def get_parking_spots():
             spots_data.append({
                 "id": str(spot.id),
                 "title": spot.title,
-                "lotnumber": spot.lotnumber,
+                "address": spot.address,
                 "description": spot.description,
                 "url_for_images": spot.url_for_images,
                 "tags": spot.tags,
-                "owner": spot.owner.username
+                "owner": spot.owner.username,
+                "time_created": spot.created_at
             })
         
         return jsonify({"spots": spots_data}), 200
@@ -72,7 +74,33 @@ def get_parking_spots():
     except Exception as e:
         current_app.logger.error(f"Error fetching parking spots: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
-    
+
+@parking_bp.route('/spots/<post_id>', methods=['GET'])
+def get_single_parking_spot(post_id):
+    try:
+        query = ParkingSpot.objects(id = post_id).first()
+        
+        spots = query.order_by('-created_at')
+        
+        spots_data = []
+        for spot in spots:
+            if(spot.id == post_id):
+                spots_data.append({
+                    "time_created": spot.created_at,
+                    "id": str(spot.id),
+                    "title": spot.title,
+                    "address": spot.address,
+                    "description": spot.description,
+                    "url_for_images": spot.url_for_images,
+                    "tags": spot.tags,
+                    "owner": spot.owner.username
+                })
+        
+        return jsonify({"spots": spots_data}), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Error fetching parking spots: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
 
 @parking_bp.route('/generate-signature', methods=['POST'])
 @jwt_required() #checks the the token from user
@@ -93,7 +121,7 @@ def upload_permission():
     }),200
 
 
-@parking_bp.route('/update-post/<post_id>', methods=['PUT'])
+@parking_bp.route('/update-post<post_id>', methods=['PUT'])
 @jwt_required()
 def update_post(post_id):
     try:
@@ -111,10 +139,13 @@ def update_post(post_id):
         data= request.get_json()
         
         # update fields if they exist in the request
-        for field in ['title', 'description', 'url_for_images', 'tags']:
+        for field in ['title', 'description', 'url_for_images']:
             if field in data:
                 setattr(post_to_update, field, data[field])
         
+        if 'tags' in data:
+            post_to_update.tags = data.get('tags', '').split()
+
         post_to_update.save()
         
         return jsonify({ #success message
@@ -126,7 +157,7 @@ def update_post(post_id):
         current_app.logger.error(f"Error updating post: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
     
-@parking_bp.route('/<post_id>', methods=['DELETE']) 
+@parking_bp.route('/spots/<post_id>', methods=['DELETE']) 
 @jwt_required()
 def delete_post(post_id):
     try:
