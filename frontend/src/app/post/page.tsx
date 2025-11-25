@@ -15,7 +15,7 @@ const Gallery = () => {
     useEffect(() => {
         async function getPost() {
             try {
-                const response = await fetch(`http://localhost:5001/api/parking/spots/`);
+                const response = await fetch(`http://localhost:5001/api/parking/spots`);
                 if (!response.ok) {
                     setError("An error regarding fetching the posts has occurred");
                 }
@@ -49,12 +49,13 @@ const Gallery = () => {
                 <Input className="pl-6 border rounded-sm hover:shadow-md" placeholder="Search..." />
             </div>
             <div className="grid grid-cols-5 gap-4">
-                <div>a</div>
-                <div>a</div>
-                <div>a</div>
-                <div>a</div>
-                <div>a</div>
-                <div>a</div>
+                {/*map over the posts state to display each post */}
+                {posts.map((post) => (
+                    <div key={post.id} className="border p-4 rounded shadow">
+                        <h3 className="font-bold">{post.title}</h3>
+                        <p>{post.description}</p>
+                    </div>
+                ))}
             </div>
             <Create />
         </div>

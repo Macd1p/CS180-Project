@@ -19,7 +19,9 @@ const Create = () => {
     };
 
     const receiveImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setImage(e.target.files?.[0] ?? null);
+        const file = e.target.files?.[0] ?? null; // get the file from the input
+        console.log("Selected file:", file); // debug log to check if file is selected
+        setImage(file); // set the image state
     };
 
     const receiveAddress = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -156,7 +158,8 @@ const Create = () => {
                 <Input type="file" accept="image/*" onChange={receiveImage} className="absolute inset-0 opacity-0 cursor-pointer" />
                 <div className="border w-1/7 pl-1 rounded-lg cursor-pointer">
                     <div className="text-gray-400">
-                        Upload an image
+                        {/* display the image name if it exists, otherwise show default text */}
+                        {image ? image.name : "Upload an image"}
                     </div>
                 </div>
             </Field>
