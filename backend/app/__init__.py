@@ -36,4 +36,7 @@ def create_app():
     from . import parking
     app.register_blueprint(parking.parking_bp)
 
+    from . import comments
+    app.register_blueprint(comments.comment_bp)
+
     return app
