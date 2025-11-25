@@ -42,14 +42,21 @@ const Create = () => {
         setError("");
         setSuccess(false);
 
+        const token = localStorage.getItem('fms_token'); //get token from local storage
+        console.log("Current Token:", token); //log token for debugging
+
+        if (!token) { //check if token exists
+            setError("You are not logged in. Please log in first."); //set error if no token
+            return; 
+        }
+
         let urlImage = ""; // we will store the image's url here to be submitted along with the other post's info
         if (image) { // upload image file to Cloudinary
             try { // getting permission to upload the user image to Cloudinary
                 const uploadPermission = await fetch('/api/parking/generate-signature', {
                     method: 'POST',
-                    credentials: "include",
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('fms_token')}`
+                        'Authorization': `Bearer ${token}` //use token in header
                     }
                 });
 
@@ -101,9 +108,8 @@ const Create = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('fms_token')}`
+                    'Authorization': `Bearer ${token}` //use token in header
                 },
-                credentials: "include",
                 body: JSON.stringify(postSubmission)
             });
 
