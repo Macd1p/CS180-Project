@@ -15,6 +15,14 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*', //match any request starting with /api/
+        destination: 'http://127.0.0.1:5001/api/:path*', //proxy to the backend server
+      },
+    ];
+  },
 };
 
 export default nextConfig;
