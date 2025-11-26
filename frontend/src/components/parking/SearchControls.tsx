@@ -32,7 +32,7 @@ export default function SearchControls({
     const q = input.trim().toLowerCase();
     if (!q) return [];
     return DEMO_SPOTS.filter((p) => {
-      const haystack = `${p.name} ${p.address} ${p.city}`.toLowerCase();
+      const haystack = `${p.title} ${p.address}`.toLowerCase();
       return haystack.includes(q);
     }).slice(0, 6);
   }, [input]);
@@ -49,7 +49,7 @@ export default function SearchControls({
 
   const handleSelect = (spot: Parking) => {
     // You can change this to spot.address if you want address in the box
-    applyValue(spot.name);
+    applyValue(spot.title);
   };
 
   const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
@@ -123,9 +123,9 @@ export default function SearchControls({
                       (idx === highlightIndex ? "bg-violet-50" : "bg-white")
                     }
                   >
-                    <div className="font-semibold">{spot.name}</div>
+                    <div className="font-semibold">{spot.title}</div>
                     <div className="text-xs text-gray-500">
-                      {spot.address}, {spot.city}
+                      {spot.address}
                     </div>
                   </li>
                 ))

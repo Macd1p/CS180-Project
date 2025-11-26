@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -12,7 +13,9 @@ declare global {
   }
 }
 
-export default function SignInPage() {
+import { Suspense } from "react";
+
+function SignInContent() {
   const [form, setForm] = useState<FormState>({
     email: "",
     password: "",
@@ -129,6 +132,19 @@ export default function SignInPage() {
         const j = await res.json().catch(() => ({}));
         throw new Error(j?.error || "Invalid credentials");
       }
+
+      // ✅ success: read access_token
+      const j = await res.json();
+
+      // ✅ tell the app we're authenticated
+      localStorage.setItem("fms_token", j.access_token);
+      localStorage.setItem("fms_authed", "1");
+      localStorage.setItem("fms_avatar", "/images/default-avatar.png"); // or later from profile
+
+      // ✅ notify any listeners (like AuthProvider)
+      window.dispatchEvent(
+        new StorageEvent("storage", { key: "fms_authed" })
+      );
 
       router.push(next);
     } catch (err: any) {
@@ -256,5 +272,13 @@ export default function SignInPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignInContent />
+    </Suspense>
   );
 }

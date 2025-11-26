@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import "../styles/globals.css";
 import { AuthProvider } from "./providers/AuthProvider";
-import SiteHeader from "./components/SiteHeader";
+import SiteHeader from "../components/layout/SiteHeader";
 
 export const metadata: Metadata = {
   title: "Find My Spot",
