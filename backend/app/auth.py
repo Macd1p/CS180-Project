@@ -4,7 +4,7 @@ from flask import(
 )
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from .model import User
 from . import bcrypt
 
@@ -146,3 +146,26 @@ def login():
 
 
 
+@auth_bp.route('/update-profile', methods=['PUT'])
+@jwt_required()
+#updates user profile details for account creation
+def update_profile():
+    current_user_id = get_jwt_identity()
+    data = request.json
+    user = User.objects(id=current_user_id).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404     
+    if 'firstname' in data:
+        user.firstname = data['firstname']
+    
+    if 'lastname' in data:
+        user.lastname = data['lastname']
+    
+    if 'username' in data:
+        user.username = data['username']
+        
+    try:
+        user.save()
+        return jsonify({"message": "Profile updated successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
