@@ -132,16 +132,36 @@ export default function SignUpPage() {
     }
   };
 
-  //finalize google signup store profile locally
+  //finalize google signup store profile locally 
   const handleGoogleProfileFinalize = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr("");
     setLoading(true);
     try {
-      // Save a lightweight client profile so header/avatar can show
+      const token = localStorage.getItem("fms_token");
+      if (!token) throw new Error("No access token found");
+
+      const r = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/update-profile`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          firstname: profile.firstName,
+          lastname: profile.lastName,
+          username: profile.username
+        }),
+      });
+
+      if (!r.ok) {
+        throw new Error("Failed to update profile");
+      }
+
+      //save a lightweight client profile so header/avatar can show
       localStorage.setItem("fms_profile", JSON.stringify(profile));
       localStorage.setItem("fms_avatar", profile.avatarUrl);
-      // token was already saved in Step 1
+      //token was already saved in Step 1
       router.push(next);
     } catch (e: any) {
       setErr(e?.message || "Could not complete profile");
