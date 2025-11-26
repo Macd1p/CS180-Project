@@ -127,6 +127,12 @@ export default function SignUpPage() {
   const handleManualSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr("");
+
+    if (!imageFile) {
+      setErr("Please upload a profile picture (Required)");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -198,6 +204,12 @@ export default function SignUpPage() {
   const handleGoogleProfileFinalize = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr("");
+
+    if (!imageFile) {
+      setErr("Please upload a profile picture (Required)");
+      return;
+    }
+
     setLoading(true);
     try {
       const token = localStorage.getItem("fms_token");
@@ -295,6 +307,7 @@ export default function SignUpPage() {
                       }}
                     />
                   </div>
+                  <div className="absolute mt-20 text-[10px] text-gray-500">Tap to upload <span className="text-red-500">*</span></div>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
@@ -437,7 +450,7 @@ export default function SignUpPage() {
                         }}
                       />
                     </div>
-                    <div className="absolute mt-20 text-[10px] text-gray-500">Tap to upload</div>
+                    <div className="absolute mt-20 text-[10px] text-gray-500">Tap to upload <span className="text-red-500">*</span></div>
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-2">
