@@ -22,7 +22,7 @@ class ParkingSpot(db.Document):
     
     # Required fields
     title = db.StringField(required=True, max_length=100)
-    lotnumber = db.StringField(required = True, max_length=20)
+    address = db.StringField(required = True, max_length=200)
     
     
     # Owner reference
