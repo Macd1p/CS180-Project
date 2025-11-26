@@ -24,6 +24,10 @@ class ParkingSpot(db.Document):
     title = db.StringField(required=True, max_length=100)
     address = db.StringField(required = True, max_length=200)
     
+    # Coordinates
+    lat = db.FloatField()
+    lng = db.FloatField()
+    
     
     # Owner reference
     owner = db.ReferenceField(User, required=True)
