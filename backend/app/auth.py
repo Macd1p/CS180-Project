@@ -4,7 +4,7 @@ from flask import(
 )
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from .model import User
 from . import bcrypt
 
@@ -20,7 +20,7 @@ def google_signin():
     google_token= data.get('token')
 
     if not google_token:
-        return jsonify({'missing token'}),400
+        return jsonify({'error': 'missing token'}),400
 
     try:
         #verifys token with the google servers
@@ -94,12 +94,16 @@ def register():
         username=user_name,
         firstname= user_firstname,
         lastname= user_lastname,
-        login_method='local'
+        login_method='local',
+        profile_image=data.get('profile_image')#saving profile image in database
     )
     user.save()
+    #create access token for registration
+    access_token = create_access_token(identity=str(user.id))
     return jsonify({
         "message": "Registration done ",
-        "email": user_email
+        "email": user_email,
+        "access_token": access_token
     }), 201
     
 
@@ -128,7 +132,7 @@ def login():
     checker_password= bcrypt.check_password_hash(user.password,user_password)
 
     if checker_password == False:
-        return jsonify({"incorrect password"}), 401
+        return jsonify({"error": "incorrect password"}), 401
     #create access token for login and send it
     else:
         access_token = create_access_token(identity=str(user.id))
@@ -143,3 +147,29 @@ def login():
 
 
 
+@auth_bp.route('/update-profile', methods=['PUT'])
+@jwt_required()
+#updates user profile details for account creation
+def update_profile():
+    current_user_id = get_jwt_identity()
+    data = request.json
+    user = User.objects(id=current_user_id).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404     
+    if 'firstname' in data:
+        user.firstname = data['firstname']
+    
+    if 'lastname' in data:
+        user.lastname = data['lastname']
+    
+    if 'username' in data:
+        user.username = data['username']
+        
+    if 'profile_image' in data:
+        user.profile_image = data['profile_image']#saving profile image user chooses
+        
+    try:
+        user.save()
+        return jsonify({"message": "Profile updated successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

@@ -11,6 +11,7 @@ class User(db.Document): #idk the database set up yet
     firstname= db.StringField()
     lastname= db.StringField()
     login_method= db.StringField()
+    profile_image = db.StringField()
 
 
 class ParkingSpot(db.Document):
