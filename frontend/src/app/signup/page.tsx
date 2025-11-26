@@ -86,6 +86,43 @@ export default function SignUpPage() {
     });
   }, [gisReady, method]);
 
+  const [imageFile, setImageFile] = useState<File | null>(null);
+
+  //helper to upload image to Cloudinary
+  const uploadImage = async (file: File, token: string) => {
+    try {
+      //get signature
+      const signRes = await fetch('/api/parking/generate-signature', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!signRes.ok) throw new Error("Failed to get upload permission");
+
+      const { timestamp, signature, cloud_name, api_key } = await signRes.json();
+
+      //upload to cloudinary
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('timestamp', timestamp);
+      formData.append('signature', signature);
+      formData.append('api_key', api_key);
+
+      const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!uploadRes.ok) throw new Error("Failed to upload image");
+
+      const data = await uploadRes.json();
+      return data.secure_url;
+    } catch (e) {
+      console.error("Upload error:", e);
+      throw e;
+    }
+  };
+
   //handle manual signup submission
   const handleManualSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,6 +130,7 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
+      // 1. Register User
       const r = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -111,18 +149,42 @@ export default function SignUpPage() {
       }
 
       const j = await r.json();
+      const token = j.access_token;
+
       //save token + mark authed
-      localStorage.setItem("fms_token", j.access_token);
+      localStorage.setItem("fms_token", token);
       localStorage.setItem("fms_authed", "1");
+
+      let finalAvatarUrl = profile.avatarUrl;
+
+      // 2. Upload Image if selected
+      if (imageFile) {
+        try {
+          finalAvatarUrl = await uploadImage(imageFile, token);
+
+          // 3. Update Profile with Image URL
+          await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/update-profile`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ profile_image: finalAvatarUrl }),
+          });
+        } catch (uploadErr) {
+          console.error("Failed to upload profile image, continuing with registration", uploadErr);
+          // Don't fail registration just because image upload failed
+        }
+      }
 
       //also save profile locally for header/avatar immediately
       localStorage.setItem("fms_profile", JSON.stringify({
         firstName: profile.firstName,
         lastName: profile.lastName,
         username: profile.username,
-        avatarUrl: profile.avatarUrl
+        avatarUrl: finalAvatarUrl
       }));
-      localStorage.setItem("fms_avatar", profile.avatarUrl);
+      localStorage.setItem("fms_avatar", finalAvatarUrl);
 
       router.push(next);
     } catch (e: any) {
@@ -141,6 +203,17 @@ export default function SignUpPage() {
       const token = localStorage.getItem("fms_token");
       if (!token) throw new Error("No access token found");
 
+      let finalAvatarUrl = profile.avatarUrl;
+
+      // Upload Image if selected
+      if (imageFile) {
+        try {
+          finalAvatarUrl = await uploadImage(imageFile, token);
+        } catch (uploadErr) {
+          console.error("Failed to upload profile image", uploadErr);
+        }
+      }
+
       const r = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/update-profile`, {
         method: "PUT",
         headers: {
@@ -150,7 +223,8 @@ export default function SignUpPage() {
         body: JSON.stringify({
           firstname: profile.firstName,
           lastname: profile.lastName,
-          username: profile.username
+          username: profile.username,
+          profile_image: finalAvatarUrl
         }),
       });
 
@@ -159,8 +233,8 @@ export default function SignUpPage() {
       }
 
       //save a lightweight client profile so header/avatar can show
-      localStorage.setItem("fms_profile", JSON.stringify(profile));
-      localStorage.setItem("fms_avatar", profile.avatarUrl);
+      localStorage.setItem("fms_profile", JSON.stringify({ ...profile, avatarUrl: finalAvatarUrl }));
+      localStorage.setItem("fms_avatar", finalAvatarUrl);
       //token was already saved in Step 1
       router.push(next);
     } catch (e: any) {
@@ -203,6 +277,26 @@ export default function SignUpPage() {
               <p className="mt-1 text-sm text-gray-600">Enter your details to create an account.</p>
 
               <form onSubmit={handleManualSignup} className="mt-4 space-y-4">
+                <div className="flex justify-center mb-4">
+                  <div className="relative h-20 w-20 cursor-pointer overflow-hidden rounded-full ring-2 ring-purple-500/40 hover:ring-purple-500">
+                    <Image
+                      src={imageFile ? URL.createObjectURL(imageFile) : profile.avatarUrl}
+                      alt="Avatar"
+                      fill
+                      className="object-cover"
+                    />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) setImageFile(file);
+                      }}
+                    />
+                  </div>
+                </div>
+
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
                     <label className="block text-sm font-medium">First name</label>
@@ -325,6 +419,27 @@ export default function SignUpPage() {
                 <p className="mt-1 text-sm text-gray-600">Add a name and pick a username for your profile.</p>
 
                 <form onSubmit={handleGoogleProfileFinalize} className="mt-4 space-y-4">
+                  <div className="flex justify-center mb-4">
+                    <div className="relative h-20 w-20 cursor-pointer overflow-hidden rounded-full ring-2 ring-purple-500/40 hover:ring-purple-500">
+                      <Image
+                        src={imageFile ? URL.createObjectURL(imageFile) : profile.avatarUrl}
+                        alt="Avatar"
+                        fill
+                        className="object-cover"
+                      />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) setImageFile(file);
+                        }}
+                      />
+                    </div>
+                    <div className="absolute mt-20 text-[10px] text-gray-500">Tap to upload</div>
+                  </div>
+
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
                       <label className="block text-sm font-medium">First name</label>
@@ -355,13 +470,6 @@ export default function SignUpPage() {
                       placeholder="janesmith"
                     />
                     <p className="mt-1 text-[10px] text-gray-500">This is how others will see you.</p>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <div className="relative h-12 w-12 overflow-hidden rounded-full ring-2 ring-purple-500/40">
-                      <Image src={profile.avatarUrl} alt="Avatar" fill className="object-cover" />
-                    </div>
-                    <span className="text-xs text-gray-600">Profile picture (optional) — using default for now.</span>
                   </div>
 
                   {err && (
