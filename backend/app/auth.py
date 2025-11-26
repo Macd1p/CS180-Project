@@ -97,9 +97,12 @@ def register():
         login_method='local'
     )
     user.save()
+    #create access token for registration
+    access_token = create_access_token(identity=str(user.id))
     return jsonify({
         "message": "Registration done ",
-        "email": user_email
+        "email": user_email,
+        "access_token": access_token
     }), 201
     
 
