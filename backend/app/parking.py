@@ -9,7 +9,6 @@ parking_bp = Blueprint('parking', __name__, url_prefix='/api/parking')
 
 @parking_bp.route('/spots', methods=['POST'])
 @jwt_required()
-
 def create_parking_spot():
     try:
         current_user_id = get_jwt_identity()
@@ -19,9 +18,9 @@ def create_parking_spot():
             return jsonify({"error": "User not found"}), 404
         
         data = request.get_json()
-        
-        # Validate required fields
-        required_fields = ['title', 'address']
+
+        # Required fields for now: title, address, lat, lng
+        required_fields = ['title', 'address', 'lat', 'lng']
         for field in required_fields:
             if field not in data:
                 return jsonify({"error": f"Missing required field: {field}"}), 400
@@ -29,10 +28,12 @@ def create_parking_spot():
         parking_spot = ParkingSpot(
             title=data['title'],
             description=data.get('description', ''),
-            address = data['address'],
-            url_for_images=data['url_for_images'],
+            address=data['address'],
+            url_for_images=data.get('url_for_images', ''),  # safe default
             tags=data.get('tags', '').split(),
-            owner=user
+            owner=user,
+            lat=data.get('lat'),
+            lng=data.get('lng'),
         )
         
         parking_spot.save()
@@ -49,12 +50,11 @@ def create_parking_spot():
         current_app.logger.error(f"Error creating parking spot: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
 
+
 @parking_bp.route('/spots', methods=['GET'])
 def get_parking_spots():
     try:
-        query = ParkingSpot.objects()
-        
-        spots = query.order_by('-created_at')
+        spots = ParkingSpot.objects().order_by('-created_at')
         
         spots_data = []
         for spot in spots:
@@ -65,8 +65,10 @@ def get_parking_spots():
                 "description": spot.description,
                 "url_for_images": spot.url_for_images,
                 "tags": spot.tags,
-                "owner": spot.owner.username,
-                "time_created": spot.created_at
+                "owner": getattr(spot.owner, "username", "Unknown"),
+                "time_created": spot.created_at,
+                "lat": spot.lat,
+                "lng": spot.lng,
             })
         
         return jsonify({"spots": spots_data}), 200
@@ -75,32 +77,31 @@ def get_parking_spots():
         current_app.logger.error(f"Error fetching parking spots: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
 
+
 @parking_bp.route('/spots/<post_id>', methods=['GET'])
 def get_single_parking_spot(post_id):
     try:
-        query = ParkingSpot.objects(id = post_id).first()
+        spot = ParkingSpot.objects(id=post_id).first()
+        if not spot:
+            return jsonify({"error": "Spot not found"}), 404
         
-        spots = query.order_by('-created_at')
+        spot_data = {
+            "id": str(spot.id),
+            "title": spot.title,
+            "address": spot.address,
+            "description": spot.description,
+            "url_for_images": spot.url_for_images,
+            "tags": spot.tags,
+            "owner": getattr(spot.owner, "username", "Unknown"),
+            "time_created": spot.created_at
+        }
         
-        spots_data = []
-        for spot in spots:
-            if(spot.id == post_id):
-                spots_data.append({
-                    "time_created": spot.created_at,
-                    "id": str(spot.id),
-                    "title": spot.title,
-                    "address": spot.address,
-                    "description": spot.description,
-                    "url_for_images": spot.url_for_images,
-                    "tags": spot.tags,
-                    "owner": spot.owner.username
-                })
-        
-        return jsonify({"spots": spots_data}), 200
+        return jsonify({"spot": spot_data}), 200
         
     except Exception as e:
-        current_app.logger.error(f"Error fetching parking spots: {str(e)}")
+        current_app.logger.error(f"Error fetching single parking spot: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
+
 
 @parking_bp.route('/generate-signature', methods=['POST'])
 @jwt_required() #checks the the token from user
