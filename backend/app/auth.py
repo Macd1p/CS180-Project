@@ -94,7 +94,8 @@ def register():
         username=user_name,
         firstname= user_firstname,
         lastname= user_lastname,
-        login_method='local'
+        login_method='local',
+        profile_image=data.get('profile_image')#saving profile image in database
     )
     user.save()
     #create access token for registration
@@ -163,6 +164,9 @@ def update_profile():
     
     if 'username' in data:
         user.username = data['username']
+        
+    if 'profile_image' in data:
+        user.profile_image = data['profile_image']#saving profile image user chooses
         
     try:
         user.save()
