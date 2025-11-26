@@ -26,7 +26,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setAuthed(false);
       }
     })();
-    return () => { ignore = true };
+
+    // Listen for storage events (e.g., when sign-in sets fms_authed)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "fms_authed") {
+        setAuthed(localStorage.getItem("fms_authed") === "1");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => { 
+      ignore = true;
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
 
   const signOut = async () => {

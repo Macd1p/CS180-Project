@@ -3,6 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
+import { usePathname } from "next/navigation";
+import { useAuth } from "../../app/providers/AuthProvider";
 
 const SECTIONS = [
   { id: "home", label: "Home" },
@@ -12,14 +14,20 @@ const SECTIONS = [
 ];
 
 export default function SiteHeader() {
+  const pathname = usePathname();
+  const { isAuthenticated, signOut } = useAuth();
+  
   const [activeId, setActiveId] = useState<string>("home");
-  const [authed, setAuthed] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState("/images/default-avatar.png");
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  
+  // Default avatar if none provided
+  const [avatarUrl, setAvatarUrl] = useState("/images/default-avatar.png");
 
-  // Track section in view
+  // Track section in view (only relevant for landing page)
   useEffect(() => {
+    if (pathname !== "/") return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -40,11 +48,21 @@ export default function SiteHeader() {
     });
 
     return () => observer.disconnect();
-  }, []);
+  }, [pathname]);
+
+  // Load avatar from local storage if available (or could come from auth context if we added it there)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const av = localStorage.getItem("fms_avatar");
+      if (av) setAvatarUrl(av);
+    }
+  }, [isAuthenticated]);
 
   const scrollToSection = (id: string) => (e: React.MouseEvent) => {
+    // If we are not on home page, let the link redirect to /#id
+    if (pathname !== "/") return;
+
     const el = document.getElementById(id);
-    // If section doesn’t exist (e.g. on /parking), let link act normally
     if (!el) return;
 
     e.preventDefault();
@@ -53,24 +71,6 @@ export default function SiteHeader() {
       window.scrollY + el.getBoundingClientRect().top - OFFSET;
     window.scrollTo({ top, behavior: "smooth" });
   };
-
-  // Read auth state from localStorage
-  useEffect(() => {
-    const readAuth = () => {
-      if (typeof window === "undefined") return;
-      const authedFlag = localStorage.getItem("fms_authed");
-      const token = localStorage.getItem("fms_token");
-      const av = localStorage.getItem("fms_avatar");
-
-      const isAuthed = authedFlag === "1" || !!token;
-      setAuthed(isAuthed);
-      if (av) setAvatarUrl(av);
-    };
-
-    readAuth();
-    window.addEventListener("storage", readAuth);
-    return () => window.removeEventListener("storage", readAuth);
-  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -86,22 +86,12 @@ export default function SiteHeader() {
     return () => window.removeEventListener("click", handleClick);
   }, [menuOpen]);
 
-  const handleSignOut = () => {
-    // Clear our local auth markers
-    localStorage.removeItem("fms_token");
-    localStorage.removeItem("fms_authed");
-    localStorage.removeItem("fms_avatar");
-    localStorage.removeItem("fms_profile");
-
-    // Let header & any other listeners react
-    window.dispatchEvent(
-      new StorageEvent("storage", { key: "fms_authed" })
-    );
-
+  const handleSignOut = async () => {
+    await signOut();
     setMenuOpen(false);
-    // Simple redirect home
-    window.location.href = "/";
   };
+
+  const isParkingPage = pathname?.startsWith("/parking") || pathname?.startsWith("/post");
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b bg-white/90 backdrop-blur">
@@ -118,23 +108,46 @@ export default function SiteHeader() {
 
         {/* Nav */}
         <nav className="flex items-center gap-6 text-sm font-medium">
-          {SECTIONS.map(({ id, label }) => (
-            <a
-              key={id}
-              href={`/#${id}`}
-              onClick={scrollToSection(id)}
-              className={`pb-1 transition-colors ${
-                activeId === id
-                  ? "border-b-2 border-purple-500 text-gray-900"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              {label}
-            </a>
-          ))}
+          {!isParkingPage ? (
+            // Landing Page Nav
+            SECTIONS.map(({ id, label }) => (
+              <Link
+                key={id}
+                href={`/#${id}`}
+                onClick={scrollToSection(id)}
+                className={`pb-1 transition-colors ${
+                  activeId === id && pathname === "/"
+                    ? "border-b-2 border-purple-500 text-gray-900"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                {label}
+              </Link>
+            ))
+          ) : (
+            // Parking/App Nav
+            <>
+              <Link
+                href="/post"
+                className={`pb-1 transition-colors ${
+                   pathname === "/post"
+                    ? "border-b-2 border-purple-500 text-gray-900"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                Posts
+              </Link>
+              <Link
+                href="/post/create"
+                className="rounded-full bg-green-500 px-4 py-1.5 text-xs font-semibold text-gray-900 shadow-sm hover:bg-green-400"
+              >
+                Create Post
+              </Link>
+            </>
+          )}
 
           {/* If not signed in: buttons */}
-          {!authed && (
+          {!isAuthenticated && (
             <>
               <Link
                 href="/signup"
@@ -152,7 +165,7 @@ export default function SiteHeader() {
           )}
 
           {/* If signed in: avatar + dropdown */}
-          {authed && (
+          {isAuthenticated && (
             <div className="relative" ref={menuRef}>
               <button
                 type="button"

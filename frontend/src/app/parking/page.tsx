@@ -1,14 +1,23 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import MapView from "./MapView";
-import SearchControls from "./SearchControls";
-import type { Parking } from "./_data";
-import { USER_LOCATION, distanceInMeters } from "./geo";
+import MapView from "../../components/parking/MapView";
+import SearchControls from "../../components/parking/SearchControls";
+import type { Parking } from "../../components/parking/_data";
+import { USER_LOCATION, distanceInMeters } from "../../components/parking/geo";
+import { useAuth } from "../providers/AuthProvider";
 
 export default function ParkingBrowsePage() {
   const router = useRouter();
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/sign-in");
+    }
+  }, [isAuthenticated, router]);
 
   const [spots, setSpots] = useState<Parking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,6 +28,8 @@ export default function ParkingBrowsePage() {
 
   // Fetch from Flask backend
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const fetchSpots = async () => {
       try {
         const res = await fetch("http://localhost:5001/api/parking/spots");
@@ -37,7 +48,7 @@ export default function ParkingBrowsePage() {
     };
 
     fetchSpots();
-  }, []);
+  }, [isAuthenticated]);
 
   // Filter spots based on distance and query
   const filteredSpots: Parking[] = useMemo(() => {
@@ -73,6 +84,7 @@ export default function ParkingBrowsePage() {
 
   const showReset = query.trim() !== "" || maxDistanceMiles !== 5;
 
+  if (!isAuthenticated) return null; // or a loading spinner while redirecting
   if (loading) return <p className="pt-20 text-center text-gray-600">Loading posts...</p>;
   if (error) return <p className="pt-20 text-center text-red-600">Error: {error}</p>;
 
@@ -108,10 +120,3 @@ export default function ParkingBrowsePage() {
     </main>
   );
 }
-
-
-
-
-
-
-

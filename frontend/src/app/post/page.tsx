@@ -5,7 +5,6 @@ import Image from "next/image";
 import PostInfo from "./data";
 import { Input } from "@headlessui/react";
 import { IoIosSearch } from "react-icons/io";
-import Create from "./create"; // imported create component
 
 const Gallery = () => {
     const [posts, setPosts] = useState<PostInfo[]>([]); // our posts from the db
@@ -43,12 +42,13 @@ const Gallery = () => {
     }, []);
 
     return (
-        <div className="w-full flex-col space-y-4">
+        <div className="w-full flex-col space-y-4 pt-20 px-4">
+            <h1 className="text-2xl font-bold">Posts</h1>
             <div className="relative p-2 w-64">
                 <IoIosSearch className="absolute text-xl mt-1 ml-1 text-gray-500" />
                 <Input className="pl-6 border rounded-sm hover:shadow-md" placeholder="Search..." />
             </div>
-            <div className="grid grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/*map over the posts state to display each post */}
                 {posts.map((post) => (
                     <div key={post.id} className="border p-4 rounded shadow">
@@ -57,9 +57,7 @@ const Gallery = () => {
                     </div>
                 ))}
             </div>
-            <Create />
         </div>
-        // updated layout with search bar and grid
     );
 }
 

@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -9,7 +10,7 @@ type ProfileState = { firstName: string; lastName: string; username: string; ava
 
 declare global { interface Window { google?: any; } }
 
-export default function SignUpPage() {
+function SignUpContent() {
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next") || "/parking";
@@ -110,6 +111,7 @@ export default function SignUpPage() {
 
       const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`, {
         method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
         body: formData
       });
 
@@ -513,3 +515,10 @@ export default function SignUpPage() {
   );
 }
 
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignUpContent />
+    </Suspense>
+  );
+}
