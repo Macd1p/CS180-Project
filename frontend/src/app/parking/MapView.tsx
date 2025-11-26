@@ -7,9 +7,9 @@ import { distanceInMeters } from "./geo";
 
 interface MapViewProps {
   spots: Parking[];
-  onMarkerClick: (id: string) => void; // navigate to post page
-  onResetFilters?: () => void;         // <- reset handler from parent
-  showReset?: boolean;                 // <- should we show the button?
+  onMarkerClick: (id: string) => void;
+  onResetFilters?: () => void;
+  showReset?: boolean;
 }
 
 export default function MapView({
@@ -21,9 +21,9 @@ export default function MapView({
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapInstance = useRef<any | null>(null);
   const markersRef = useRef<any[]>([]);
-  const [L, setL] = useState<any | null>(null); // Leaflet module
+  const [L, setL] = useState<any | null>(null);
 
-  // Load Leaflet on the client only
+  // Load Leaflet dynamically (client only)
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -36,14 +36,16 @@ export default function MapView({
     };
   }, []);
 
-  // Create the map once (after Leaflet has loaded)
+  // Initialize the map
   useEffect(() => {
     if (!mapRef.current) return;
     if (mapInstance.current) return;
     if (!L) return;
 
     const initialCenter: [number, number] =
-      spots.length > 0 ? [spots[0].lat, spots[0].lng] : [34.0522, -118.2437]; // fallback: LA
+      spots.length > 0 && spots[0].lat && spots[0].lng
+        ? [spots[0].lat, spots[0].lng]
+        : [34.0522, -118.2437]; // fallback: Los Angeles
 
     const map = L.map(mapRef.current, {
       center: initialCenter,
@@ -64,28 +66,30 @@ export default function MapView({
     };
   }, [L, spots]);
 
-  // Update markers / popup behavior when spots change
+  // Update markers when spots change
   useEffect(() => {
     const map = mapInstance.current;
     if (!map || !L) return;
 
-    // Remove previous markers
+    // Clear existing markers
     markersRef.current.forEach((m) => map.removeLayer(m));
     markersRef.current = [];
 
     if (!spots.length) return;
 
     const bounds = L.latLngBounds([]);
-
-    // Store displayed marker positions to avoid overlap
     const adjustedPositions: { lat: number; lng: number }[] = [];
 
     spots.forEach((p) => {
-      let displayLat = p.lat;
-      let displayLng = p.lng;
+      // Skip posts without coordinates
+      if (p.lat == null || p.lng == null) return;
 
-      // ---- simple overlap handling ----
-      const thresholdMeters = 80; // "too close" threshold
+      // Base positions
+      let displayLat: number = p.lat;
+      let displayLng: number = p.lng;
+
+      // Handle overlapping markers
+      const thresholdMeters = 80;
       let overlapsSoFar = 0;
 
       adjustedPositions.forEach((pos) => {
@@ -94,7 +98,7 @@ export default function MapView({
       });
 
       if (overlapsSoFar > 0) {
-        const angle = (overlapsSoFar * 45 * Math.PI) / 180; // 45° steps
+        const angle = (overlapsSoFar * 45 * Math.PI) / 180;
         const radiusMeters = 25;
 
         const latRad = (displayLat * Math.PI) / 180;
@@ -107,19 +111,23 @@ export default function MapView({
       }
 
       adjustedPositions.push({ lat: displayLat, lng: displayLng });
-      // ---------------------------------
 
-      const avatarSrc = (p as any).userAvatarUrl ?? p.imageUrl;
+      // Fallbacks for missing backend fields
+      const avatarSrc = (p as any).url_for_images ?? "/images/default-avatar.png";
+      const userName = (p as any).owner ?? "Unknown User";
+      const address = p.address ?? "No address available";
+      const title = p.title ?? "Untitled Post";
 
+      // Marker bubble design
       const icon = L.divIcon({
         className: "",
         html: `
           <div class="parking-marker-bubble">
             <div class="parking-marker-avatar">
-              <img src="${avatarSrc}" alt="${p.userName}" />
+              <img src="${avatarSrc}" alt="${userName}" />
             </div>
             <div class="parking-marker-label">
-              ${p.address}
+              ${address}
             </div>
           </div>
         `,
@@ -132,24 +140,24 @@ export default function MapView({
         riseOnHover: true,
       }).addTo(map);
 
+      // Popup content
       const popupHtml = `
         <div class="parking-popup">
           <div class="parking-popup-header">
             <div class="parking-popup-avatar">
-              ${p.userName.charAt(0).toUpperCase()}
+              ${userName.charAt(0).toUpperCase()}
             </div>
-            <div class="parking-popup-username">${p.userName}</div>
+            <div class="parking-popup-username">${userName}</div>
           </div>
 
           <img
-            src="${p.imageUrl}"
-            alt="${p.name}"
+            src="${avatarSrc}"
+            alt="${title}"
             class="parking-popup-image"
           />
 
           <div class="parking-popup-address">
-            ${p.address}<br />
-            <span class="parking-popup-city">${p.city}</span>
+            ${address}<br />
           </div>
 
           <button class="parking-popup-button" data-view-post="${p.id}">
@@ -158,10 +166,7 @@ export default function MapView({
         </div>
       `;
 
-      const popup = L.popup({
-        closeButton: false,
-      }).setContent(popupHtml);
-
+      const popup = L.popup({ closeButton: false }).setContent(popupHtml);
       marker.bindPopup(popup);
 
       popup.on("add", () => {
@@ -180,16 +185,15 @@ export default function MapView({
         }
       });
 
-      // Click-only popup
-      marker.on("click", () => {
-        marker.openPopup();
-      });
+      marker.on("click", () => marker.openPopup());
 
       markersRef.current.push(marker);
       bounds.extend([displayLat, displayLng]);
     });
 
-    map.fitBounds(bounds, { padding: [40, 40] });
+    if (adjustedPositions.length > 0) {
+      map.fitBounds(bounds, { padding: [40, 40] });
+    }
   }, [L, spots, onMarkerClick]);
 
   return (
@@ -208,6 +212,7 @@ export default function MapView({
     </div>
   );
 }
+
 
 
 
