@@ -47,7 +47,7 @@ const Create = () => {
 
         if (!token) { //check if token exists
             setError("You are not logged in. Please log in first."); //set error if no token
-            return; 
+            return;
         }
 
         let urlImage = ""; // we will store the image's url here to be submitted along with the other post's info
@@ -99,8 +99,49 @@ const Create = () => {
             }
         }
 
+        //geocoding: Convert address to coordinates
+        let lat = null;
+        let lng = null;
+
+        try {
+            const geocodeResponse = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`, {
+                headers: {
+                    'User-Agent': 'ParkingApp/1.0' //required by nominatim usage policy
+                }
+            });
+
+            if (geocodeResponse.ok) {
+                const geocodeData = await geocodeResponse.json();
+                if (geocodeData && geocodeData.length > 0) {
+                    lat = parseFloat(geocodeData[0].lat);
+                    lng = parseFloat(geocodeData[0].lon);
+                } else {
+                    setError("Address not found. Please try a more specific address.");
+                    return;
+                }
+            } else {
+                console.error("Geocoding failed");
+                setError("Could not validate address. Please check your internet connection.");
+                return;
+            }
+
+        } catch (error) {
+            console.error("Geocoding error:", error);
+            setError("Error validating address.");
+            return;
+        }
+
+
         // postSubmission is the post's info to be sent
-        const postSubmission = { title, url_for_images: urlImage, address, description, tags }; // fixed typo from url_for_images_ to url_for_images
+        const postSubmission = {
+            title,
+            url_for_images: urlImage,
+            address,
+            description,
+            tags,
+            lat,
+            lng
+        };
 
         // Posting the post submission to the backend
         try {
@@ -114,7 +155,9 @@ const Create = () => {
             });
 
             if (!response.ok) {
-                setError("An error regarding fetching has occurred");
+                const errorData = await response.json();
+                setError(errorData.error || "An error regarding fetching has occurred");
+                return;
             }
 
             // Successful submission

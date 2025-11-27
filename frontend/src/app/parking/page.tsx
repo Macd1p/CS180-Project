@@ -24,7 +24,7 @@ export default function ParkingBrowsePage() {
   const [error, setError] = useState<string | null>(null);
 
   const [query, setQuery] = useState("");
-  const [maxDistanceMiles, setMaxDistanceMiles] = useState(5);
+  const [maxDistanceMiles, setMaxDistanceMiles] = useState(5000);
 
   // Fetch from Flask backend
   useEffect(() => {
@@ -79,10 +79,10 @@ export default function ParkingBrowsePage() {
 
   const handleResetFilters = () => {
     setQuery("");
-    setMaxDistanceMiles(5);
+    setMaxDistanceMiles(5000);
   };
 
-  const showReset = query.trim() !== "" || maxDistanceMiles !== 5;
+  const showReset = query.trim() !== "" || maxDistanceMiles !== 5000;
 
   if (!isAuthenticated) return null; // or a loading spinner while redirecting
   if (loading) return <p className="pt-20 text-center text-gray-600">Loading posts...</p>;
