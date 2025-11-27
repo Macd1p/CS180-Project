@@ -45,46 +45,53 @@ function SignUpContent() {
   }, []);
 
   useEffect(() => {
-    if (!gisReady || !window.google || !btnRef.current || method !== "google") return;
+    if (!gisReady || !btnRef.current || method !== "google") return;
 
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
-    window.google.accounts.id.initialize({
-      client_id: clientId,
-      callback: async (resp: any) => {
-        try {
-          setErr("");
-          // Send token to your backend's ONLY auth endpoint
-          const r = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google-signin`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ token: resp.credential }),
-          });
-          if (!r.ok) {
-            const j = await r.json().catch(() => ({}));
-            throw new Error(j?.error || "Google sign-in failed");
-          }
-          const j = await r.json();
-          // Save token + mark authed; header will react to this
-          localStorage.setItem("fms_token", j.access_token);
-          localStorage.setItem("fms_authed", "1");
+    const checkGoogle = setInterval(() => {
+      if (window.google) {
+        clearInterval(checkGoogle);
+        const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: async (resp: any) => {
+            try {
+              setErr("");
+              //send token to backend's auth endpoint
+              const r = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google-signin`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ token: resp.credential }),
+              });
+              if (!r.ok) {
+                const j = await r.json().catch(() => ({}));
+                throw new Error(j?.error || "Google sign-in failed");
+              }
+              const j = await r.json();
+              //save token + mark authed and header will react to this
+              localStorage.setItem("fms_token", j.access_token);
+              localStorage.setItem("fms_authed", "1");
 
-          // Move to Step 2 to collect local profile details
-          setStep(2);
-        } catch (e: any) {
-          setErr(e?.message || "Google sign-in failed");
-        }
-      },
-    });
+              //move to step 2 to collect local profile details
+              setStep(2);
+            } catch (e: any) {
+              setErr(e?.message || "Google sign-in failed");
+            }
+          },
+        });
 
-    window.google.accounts.id.renderButton(btnRef.current, {
-      type: "standard",
-      shape: "pill",
-      theme: "outline",
-      size: "large",
-      text: "signup_with",
-      logo_alignment: "left",
-      width: 320,
-    });
+        window.google.accounts.id.renderButton(btnRef.current, {
+          type: "standard",
+          shape: "pill",
+          theme: "outline",
+          size: "large",
+          text: "signup_with",
+          logo_alignment: "left",
+          width: 320,
+        });
+      }
+    }, 100);
+
+    return () => clearInterval(checkGoogle);
   }, [gisReady, method]);
 
   const [imageFile, setImageFile] = useState<File | null>(null);

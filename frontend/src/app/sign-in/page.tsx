@@ -48,60 +48,67 @@ function SignInContent() {
   }, []);
 
   useEffect(() => {
-    if (!gisReady || !window.google || !btnRef.current) return;
+    if (!gisReady || !btnRef.current) return;
 
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
-    window.google.accounts.id.initialize({
-      client_id: clientId,
-      callback: async (resp: any) => {
-        try {
-          const idToken = resp.credential as string;
+    const checkGoogle = setInterval(() => {
+      if (window.google) {
+        clearInterval(checkGoogle);
+        const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: async (resp: any) => {
+            try {
+              const idToken = resp.credential as string;
 
-          const r = await fetch(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google-signin`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ token: idToken }),
+              const r = await fetch(
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google-signin`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ token: idToken }),
+                }
+              );
+
+              //handle a bad response
+              if (!r.ok) {
+                const j = await r.json().catch(() => ({}));
+                throw new Error(j?.error || "Google sign-in failed");
+              }
+
+              //success as read access_token once
+              const j = await r.json();
+
+              //tell the app we’re authenticated
+              localStorage.setItem("fms_token", j.access_token);
+              localStorage.setItem("fms_authed", "1");
+              localStorage.setItem("fms_avatar", "/images/default-avatar.png"); // or later from profile
+
+              //notify listeners
+              window.dispatchEvent(
+                new StorageEvent("storage", { key: "fms_authed" })
+              );
+
+              //go to the next page
+              router.push(next);
+            } catch (e: any) {
+              setError(e?.message || "Google sign-in failed");
             }
-          );
+          },
+        });
 
-          // handle bad response
-          if (!r.ok) {
-            const j = await r.json().catch(() => ({}));
-            throw new Error(j?.error || "Google sign-in failed");
-          }
+        window.google.accounts.id.renderButton(btnRef.current, {
+          type: "standard",
+          shape: "pill",
+          theme: "outline",
+          size: "large",
+          text: "continue_with",
+          logo_alignment: "left",
+          width: 360,
+        });
+      }
+    }, 100);
 
-          // ✅ success: read access_token once
-          const j = await r.json();
-
-          // ✅ tell the app we’re authenticated
-          localStorage.setItem("fms_token", j.access_token);
-          localStorage.setItem("fms_authed", "1");
-          localStorage.setItem("fms_avatar", "/images/default-avatar.png"); // or later from profile
-
-          // ✅ notify any listeners (like SiteHeader)
-          window.dispatchEvent(
-            new StorageEvent("storage", { key: "fms_authed" })
-          );
-
-          // go to next page
-          router.push(next);
-        } catch (e: any) {
-          setError(e?.message || "Google sign-in failed");
-        }
-      },
-    });
-
-    window.google.accounts.id.renderButton(btnRef.current, {
-      type: "standard",
-      shape: "pill",
-      theme: "outline",
-      size: "large",
-      text: "continue_with",
-      logo_alignment: "left",
-      width: 360,
-    });
+    return () => clearInterval(checkGoogle);
   }, [gisReady, router, next]);
 
   const onSubmit = async (e: React.FormEvent) => {
