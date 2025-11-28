@@ -11,13 +11,13 @@ import { useAuth } from "../providers/AuthProvider";
 
 export default function ParkingBrowsePage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth(); //states if user is authenticated and if loading to prevent race condition
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isLoading && !isAuthenticated) {
       router.push("/sign-in");
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isLoading, router]);
 
   const [spots, setSpots] = useState<Parking[]>([]);
   const [loading, setLoading] = useState(true);
