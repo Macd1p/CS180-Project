@@ -77,11 +77,18 @@ function SignInContent() {
 
               //success as read access_token once
               const j = await r.json();
-
+              
               //tell the app we’re authenticated
               localStorage.setItem("fms_token", j.access_token);
               localStorage.setItem("fms_authed", "1");
-              localStorage.setItem("fms_avatar", "/images/default-avatar.png"); // or later from profile
+              localStorage.setItem("fms_avatar", j.profile_image || "/images/default-avatar.png");
+
+              localStorage.setItem("fms_profile", JSON.stringify({ //stores profile info
+                username: j.username,
+                firstName: j.firstname,
+                lastName: j.lastname,
+                avatarUrl: j.profile_image
+              }));
 
               //notify listeners
               window.dispatchEvent(
@@ -140,15 +147,22 @@ function SignInContent() {
         throw new Error(j?.error || "Invalid credentials");
       }
 
-      // ✅ success: read access_token
+      //read access_token from response
       const j = await res.json();
 
-      // ✅ tell the app we're authenticated
+      //tell the app we're authenticated and store access token
       localStorage.setItem("fms_token", j.access_token);
       localStorage.setItem("fms_authed", "1");
-      localStorage.setItem("fms_avatar", "/images/default-avatar.png"); // or later from profile
+      localStorage.setItem("fms_avatar", j.profile_image || "/images/default-avatar.png");//set profile image or default avatar
 
-      // ✅ notify any listeners (like AuthProvider)
+      localStorage.setItem("fms_profile", JSON.stringify({ //sets profile info
+        username: j.username,
+        firstName: j.firstname,
+        lastName: j.lastname,
+        avatarUrl: j.profile_image
+      }));
+
+      //notify any listeners (like AuthProvider) of auth change
       window.dispatchEvent(
         new StorageEvent("storage", { key: "fms_authed" })
       );

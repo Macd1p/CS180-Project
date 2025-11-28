@@ -118,7 +118,6 @@ function SignUpContent() {
 
       const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
         body: formData
       });
 
