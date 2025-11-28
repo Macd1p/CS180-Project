@@ -11,5 +11,6 @@ MONGODB_SETTINGS = {
 GOOGLE_CLIENT_ID = None
 GOOGLE_CLIENT_SECRET = None
 JWT_SECRET_KEY = None
+JWT_ACCESS_TOKEN_EXPIRES = 86400 #24 hours instead of 15 min expiration for token
 
 WTF_CSRF_ENABLED = False #makes sure csrf does not work for blocking
