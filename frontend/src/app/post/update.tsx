@@ -3,6 +3,7 @@ import {Dialog, DialogTitle, DialogPanel, Description, Textarea, Label, Input, F
 import { IoMdCheckmarkCircleOutline } from "react-icons/io";
 import { MdErrorOutline } from "react-icons/md";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 interface UpdateModal {
   open: boolean;
   setOpen: (value: boolean) => void;
@@ -25,12 +26,16 @@ const Update = ({open, setOpen, postID}:UpdateModal) => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
+  const router = useRouter();
+
   const receiveTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setTitle(e.target.value.trim());
+      setTitle(e.target.value);
   };
 
   const receiveImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setImage(e.target.files?.[0] ?? null);
+      const file = e.target.files?.[0] ?? null; // get the file from the input
+      console.log("Selected file:", file); // debug log to check if file is selected
+      setImage(file); // set the image state
   };
 
   const receiveDescription = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -48,58 +53,67 @@ const Update = ({open, setOpen, postID}:UpdateModal) => {
         // updateForm is the form to be sent
         const updateForm:updateInfo = {};
         if (title) {
-          updateForm.title = title
+          updateForm.title = title.trim()
         }
 
-        let urlImage = "";
+        const token = localStorage.getItem('fms_token'); //get token from local storage
+        console.log("Current Token:", token); //log token for debugging
+
+        if (!token) { //check if token exists
+            setError("You are not logged in. Please log in first."); //set error if no token
+            return;
+        }
+
+        let urlImage = ""; // we will store the image's url here to be submitted along with the other post's info
         if (image) { // upload image file to Cloudinary
-          try { // getting permission to upload the user image to Cloudinary
-            const uploadPermission = await fetch('/api/parking/generate-signature', {
-              method: 'POST',
-              credentials: "include",
-              headers: {
-                'Authorization': `Bearer ${localStorage.getItem('fms_token')}`
-              }
-            });
-            
-            if (!uploadPermission.ok) {
-              setError("You do not have permission to upload");
-            }
+            try { // getting permission to upload the user image to Cloudinary
+                const uploadPermission = await fetch('/api/parking/generate-signature', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}` //use token in header
+                    }
+                });
 
-            const { timestamp, signature, cloud_name, api_key } = await uploadPermission.json();
-            
-            // image's info that gets uploaded to Cloudinary
-            const uploadImage = new FormData();
-            uploadImage.append('file', image);
-            uploadImage.append('timestamp', timestamp);
-            uploadImage.append('signature', signature);
-            uploadImage.append('api_key', api_key);
-            
-            // Uploading the image to Cloudinary
-            const uploadResponse = await fetch(`https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,{ 
-                method: 'POST', 
-                body: uploadImage 
-            });
-            
-            if (!uploadResponse.ok) {
-                setError("There is an error the uploading your image");
-            }
-            
-            const imageData = await uploadResponse.json();
-            urlImage = imageData.secure_url;
-            updateForm.url_for_images = urlImage;
-            console.log(urlImage);
+                if (!uploadPermission.ok) {
+                    setError("You do not have permission to upload");
+                }
 
-          } catch (error) {
-            if (error instanceof Error) {
-                setError("Error: " + error.message);
-                setSuccess(false);
-            } 
-            else {
-                setError("An error has occurred.");
-                setSuccess(false);
+                const { timestamp, signature, cloud_name, api_key } = await uploadPermission.json();
+
+                // image's info that gets uploaded to Cloudinary
+                const uploadImage = new FormData();
+                uploadImage.append('file', image);
+                uploadImage.append('timestamp', timestamp);
+                uploadImage.append('signature', signature);
+                uploadImage.append('api_key', api_key);
+
+                // Uploading the image to Cloudinary
+                const uploadResponse = await fetch(`https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`, {
+                    method: 'POST',
+                    body: uploadImage
+                });
+
+                if (!uploadResponse.ok) {
+                    setError("There is an error the uploading your image");
+                }
+
+                const imageData = await uploadResponse.json();
+                urlImage = imageData.secure_url;
+                updateForm.url_for_images = urlImage;
+                console.log(urlImage);
+
+            } catch (error) {
+                if (error instanceof Error) {
+                    setError("Error: " + error.message);
+                    setSuccess(false);
+                    return;
+                }
+                else {
+                    setError("An error has occurred.");
+                    setSuccess(false);
+                    return;
+                }
             }
-          }
         }
 
         if (description) {
@@ -112,18 +126,18 @@ const Update = ({open, setOpen, postID}:UpdateModal) => {
         
         // Updating the post using PUT to the backend
         try {
-            const response = await fetch(`/api/parking/spots/update-post/${postID}`, {
+            const response = await fetch(`/api/parking/update-post/${postID}`, {
                 method: 'PUT',
                 headers: {
                   'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${localStorage.getItem('fms_token')}`
+                  'Authorization': `Bearer ${token}`
                 },
-                credentials: "include",
                 body: JSON.stringify(updateForm)
             });
 
             if (!response.ok) {
                 setError("An error regarding fetching has occurred");
+                return;
             }
 
             // Successful submission
@@ -136,6 +150,7 @@ const Update = ({open, setOpen, postID}:UpdateModal) => {
             setImage(null);
             setDescription("");
             setTags("");
+            setTimeout(() => {router.push('/post');}, 2000);
 
         } catch (error) { // fail to submit the form
             if (error instanceof Error) {
@@ -174,8 +189,8 @@ const Update = ({open, setOpen, postID}:UpdateModal) => {
                   </Label>
                   <Input type="file" accept = "image/*" onChange={receiveImage} className="absolute inset-0 opacity-0"/>
                   <div className="border pl-1 hover:shadow-md border-gray-500 rounded-md cursor-pointer">
-                    <div className="text-gray-400">
-                        Upload an new image
+                    <div className="text-gray-400 cursor-pointer">
+                        {image ? image.name : "Upload an image"}
                     </div>
                 </div>
               </Field>
@@ -202,7 +217,7 @@ const Update = ({open, setOpen, postID}:UpdateModal) => {
                       Save
                   </button>
                   {/*Message for the user to know if the post was updated*/}
-                  {success ? (<div className="text-green-600 font-medium"> <IoMdCheckmarkCircleOutline/> Successful Posting!</div>) : (error && <div className="text-red-600"> <MdErrorOutline/> Error: {error}</div>)}
+                  {success ? (<div className="flex items-center text-green-600 font-medium"> <IoMdCheckmarkCircleOutline/> Successful Update!</div>) : (error && <div className="flex items-center text-red-600"> <MdErrorOutline/> Error: {error}</div>)}
                 </div>
               </form>
             </DialogPanel>

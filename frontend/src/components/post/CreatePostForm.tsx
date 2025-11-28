@@ -15,7 +15,7 @@ const Create = () => {
     const [success, setSuccess] = useState(false);
 
     const receiveTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setTitle(e.target.value.trim());
+        setTitle(e.target.value);
     };
 
     const receiveImage = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -134,7 +134,7 @@ const Create = () => {
 
         // postSubmission is the post's info to be sent
         const postSubmission = {
-            title,
+            title: title.trim(),
             url_for_images: urlImage,
             address,
             description,
@@ -196,7 +196,7 @@ const Create = () => {
                 <Label className="font-medium text-lg">
                     Title:
                 </Label>
-                <Input type="text" value={title} onChange={receiveTitle} required className="border w-1/7 pl-1 rounded-lg hover:shadow-md" placeholder="Enter a title" />
+                <Input type="text" value={title} onChange={receiveTitle} required className="border w-1/3 pl-1 rounded-lg hover:shadow-md" placeholder="Enter a title" />
             </Field>
 
             {/*Upload Image File Field*/}
@@ -205,7 +205,7 @@ const Create = () => {
                     Image File:
                 </Label>
                 <Input type="file" accept="image/*" onChange={receiveImage} className="absolute inset-0 opacity-0 cursor-pointer" />
-                <div className="border w-1/7 pl-1 rounded-lg cursor-pointer">
+                <div className="border w-1/3 pl-1 rounded-lg cursor-pointer">
                     <div className="text-gray-400">
                         {/* display the image name if it exists, otherwise show default text */}
                         {image ? image.name : "Upload an image"}
@@ -218,7 +218,7 @@ const Create = () => {
                 <Label className="font-medium text-lg">
                     Address:
                 </Label>
-                <Input type="text" value={address} onChange={receiveAddress} required className="border w-1/7 pl-1 rounded-lg hover:shadow-md" placeholder="Enter a valid address" />
+                <Input type="text" value={address} onChange={receiveAddress} required className="border w-1/3 pl-1 rounded-lg hover:shadow-md" placeholder="Enter a valid address" />
             </Field>
 
 
@@ -227,7 +227,7 @@ const Create = () => {
                 <Label className="font-medium text-lg">
                     Description:
                 </Label>
-                <Textarea value={description} onChange={receiveDescription} className="border w-1/7 pl-1 rounded-lg hover:shadow-md" placeholder="Type a description" />
+                <Textarea value={description} onChange={receiveDescription} className="border w-1/3 pl-1 rounded-lg hover:shadow-md" placeholder="Type a description" />
             </Field>
 
             {/*Tags Field*/}
@@ -235,7 +235,7 @@ const Create = () => {
                 <Label className="font-medium text-lg">
                     Tags:
                 </Label>
-                <Input type="text" value={tags} onChange={receiveTags} className="border w-1/7 pl-1 rounded-lg hover:shadow-md" placeholder="ex: #free #street" />
+                <Input type="text" value={tags} onChange={receiveTags} className="border w-1/3 pl-1 rounded-lg hover:shadow-md" placeholder="ex: #free #street" />
             </Field>
 
             {/*Submission Button*/}
@@ -243,7 +243,7 @@ const Create = () => {
                 Create Post
             </button>
             {/*Message for the user to know if the post was submitted*/}
-            {success ? (<div className="text-green-600 font-medium"> <IoMdCheckmarkCircleOutline /> Successful Posting!</div>) : (error && <div className="text-red-600"> <MdErrorOutline /> {error}</div>)}
+            {success ? (<div className="flex items-center text-green-600 font-medium"> <IoMdCheckmarkCircleOutline /> Successful Posting!</div>) : (error && <div className="flex items-center text-red-600"> <MdErrorOutline /> {error}</div>)}
         </form>
     );
 }

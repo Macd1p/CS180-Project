@@ -27,10 +27,10 @@ const Post = ({data, postID}:PostData) => {
   }
 
   return (
-    <div className = "bg-gray-300 w-1/3 rounded-2xl p-4 mb-2">
+    <div className = "bg-gray-300 w-full rounded-2xl p-4 mb-2">
       <div className="flex justify-between items-center">
-        <div className="text-4xl font-semibold">
-          Post Title {data.title}
+        <div className="text-2xl font-semibold">
+          {data.title}
         </div>
 
         {/*Dropdown menu for the user to edit their post and delete their post*/}
@@ -39,7 +39,7 @@ const Post = ({data, postID}:PostData) => {
           <MenuButton className="px-2 py-1 rounded cursor-pointer">
             <BsThreeDots className="text-xl"/>
           </MenuButton>
-          <MenuItems anchor="bottom end" className="flex flex-col border-1 rounded-sm text-sm ml-3">
+          <MenuItems anchor="bottom end" className="flex flex-col border-1 rounded-sm text-sm ml-3 bg-white">
             <MenuItem>
               <button onClick = {() => setCE(true)} className="flex items-center border-b-1 p-1 cursor-pointer">
                 <MdEdit/>
@@ -69,22 +69,30 @@ const Post = ({data, postID}:PostData) => {
       )}
 
       <div className="text-sm mb-3">
-        Posted by: {data.owner} at {data.time_created}
+        Posted by: {data.owner} at {new Date(data.time_created).toLocaleString('en-US', {timeZone: 'America/Los_Angeles', hour: '2-digit', minute: '2-digit', hour12: true})}
       </div>
 
       <div className="flex flex-col items-center">
-        <div className="relative w-3/4 bg-white aspect-square rounded-lg overflow-hidden">
+        <div className="relative w-10/12 bg-white aspect-square rounded-lg overflow-hidden">
           <Image src={data.url_for_images || "/images/default-avatar.png"} alt = {"Image goes here"} fill className="object-cover"/>
         </div>
       </div>
-      <div className="mt-3 mb-2 font-medium">
-          Address: {data.address}
+      <div className="mt-3 mb-2">
+          <div className="font-medium">
+            Address: 
+          </div>
+          {data.address}
       </div>
-      <div className="mb-2 break-words font-medium">
-          Description: {data.description}
+      <div className="mb-2 break-words">
+          <div className="font-medium">
+             Description:
+          </div>
+          {data.description}
       </div>
       <div className="mb-2 text-sm font-medium">
-          Tags: {data.tags.map(tag => <span key={tag} className="mr-2 bg-blue-400 rounded-xl">{tag}</span>)}
+          Tags: 
+          {data.tags?.map(tag => (
+        <span key={tag} className="ml-2 bg-blue-500 text-xs text-white rounded-xl px-2 py-1">{tag}</span>))}
       </div>
     </div>
   );

@@ -122,7 +122,7 @@ def upload_permission():
     }),200
 
 
-@parking_bp.route('/update-post<post_id>', methods=['PUT'])
+@parking_bp.route('/update-post/<post_id>', methods=['PUT'])
 @jwt_required()
 def update_post(post_id):
     try:

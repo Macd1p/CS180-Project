@@ -24,18 +24,18 @@ const Delete = ({open, setOpen, postID}:DeleteModal) => {
                   'Content-Type': 'application/json',
                   'Authorization': `Bearer ${localStorage.getItem('fms_token')}`
                 },
-                credentials: "include"
             });
 
             if (!response.ok) {
                 setError("An error regarding fetching has occurred");
+                return;
             }
             
             // Successfully deleted the post
             setSuccess(true);
             setOpen(false);
             // Redirect back to /parking/spots page
-            setTimeout(() => {router.push('/api/parking/spots');}, 2000);
+            setTimeout(() => {router.push('/post');}, 2000);
 
         } catch (error) {
             if (error instanceof Error) {
@@ -64,7 +64,7 @@ const Delete = ({open, setOpen, postID}:DeleteModal) => {
                   Delete
                 </button>
                 {/*Message for the user to know if the post was submitted*/}
-                {success ? (<div className="text-green-600 font-medium"> <IoMdCheckmarkCircleOutline/> Successful Posting!</div>) : (error && <div className="text-red-600"> <MdErrorOutline/> Error: {error}</div>)}
+                {success ? (<div className="flex items-center text-green-600 font-medium"> <IoMdCheckmarkCircleOutline/> Successful Posting!</div>) : (error && <div className="flex items-center text-red-600"> <MdErrorOutline/> Error: {error}</div>)}
               </div>
             </DialogPanel>
           </div>
