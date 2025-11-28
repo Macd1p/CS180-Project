@@ -53,7 +53,13 @@ def google_signin():
             print(f'{users_email} logged in')
         access_token=create_access_token(identity=str(user.id))
 
-        return jsonify(access_token=access_token),200 #sending the access token
+        return jsonify({
+            "access_token": access_token,
+            "username": user.username,
+            "firstname": user.firstname,
+            "lastname": user.lastname,
+            "profile_image": user.profile_image
+        }), 200 #sending the access token and account info
     except ValueError as error:
         print(f"token failed: {error}")
         return jsonify({"error":"bad token"}), 401
@@ -138,7 +144,11 @@ def login():
         access_token = create_access_token(identity=str(user.id))
         return jsonify({
             "message": "Login successful",
-            "access_token": access_token
+            "access_token": access_token,
+            "username": user.username,
+            "firstname": user.firstname,
+            "lastname": user.lastname,
+            "profile_image": user.profile_image
         }), 200 
 
 
