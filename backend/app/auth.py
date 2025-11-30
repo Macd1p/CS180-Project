@@ -183,3 +183,19 @@ def update_profile():
         return jsonify({"message": "Profile updated successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@auth_bp.route('/profile', methods=['GET'])
+@jwt_required()
+def get_profile():
+    current_user_id = get_jwt_identity() #gets current user id token
+    user = User.objects(id=current_user_id).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    return jsonify({ #returns user profile info for account edit
+        "username": user.username,
+        "firstname": user.firstname,
+        "lastname": user.lastname,
+        "email": user.email,
+        "profile_image": user.profile_image
+    }), 200
