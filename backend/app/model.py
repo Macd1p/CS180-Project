@@ -36,6 +36,7 @@ class ParkingSpot(db.Document):
     # Timestamps
     created_at = db.DateTimeField(default=datetime.now)
     updated_at = db.DateTimeField(default=datetime.now)
+    likes = db.ListField(db.ReferenceField(User))
     
     meta = {
         'collection': 'parking_spots',

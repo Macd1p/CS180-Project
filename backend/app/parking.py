@@ -52,12 +52,22 @@ def create_parking_spot():
 
 
 @parking_bp.route('/spots', methods=['GET'])
+@jwt_required(optional=True)
 def get_parking_spots():
     try:
+        current_user_id = get_jwt_identity()
+        current_user = None
+        if current_user_id:
+            current_user = User.objects(id=current_user_id).first()
+
         spots = ParkingSpot.objects().order_by('-created_at')
         
         spots_data = []
         for spot in spots:
+            is_liked = False
+            if current_user and spot.likes:
+                is_liked = current_user in spot.likes
+
             spots_data.append({
                 "id": str(spot.id),
                 "title": spot.title,
@@ -69,6 +79,8 @@ def get_parking_spots():
                 "time_created": spot.created_at,
                 "lat": spot.lat,
                 "lng": spot.lng,
+                "like_count": len(spot.likes) if spot.likes else 0,
+                "is_liked": is_liked
             })
         
         return jsonify({"spots": spots_data}), 200
@@ -79,12 +91,22 @@ def get_parking_spots():
 
 
 @parking_bp.route('/spots/<post_id>', methods=['GET'])
+@jwt_required(optional=True)
 def get_single_parking_spot(post_id):
     try:
+        current_user_id = get_jwt_identity()
+        current_user = None
+        if current_user_id:
+            current_user = User.objects(id=current_user_id).first()
+
         spot = ParkingSpot.objects(id=post_id).first()
         if not spot:
             return jsonify({"error": "Spot not found"}), 404
         
+        is_liked = False
+        if current_user and spot.likes:
+            is_liked = current_user in spot.likes
+
         spot_data = {
             "id": str(spot.id),
             "title": spot.title,
@@ -93,7 +115,9 @@ def get_single_parking_spot(post_id):
             "url_for_images": spot.url_for_images,
             "tags": spot.tags,
             "owner": getattr(spot.owner, "username", "Unknown"),
-            "time_created": spot.created_at
+            "time_created": spot.created_at,
+            "like_count": len(spot.likes) if spot.likes else 0,
+            "is_liked": is_liked
         }
         
         return jsonify({"spot": spot_data}), 200
@@ -179,4 +203,37 @@ def delete_post(post_id):
         
     except Exception as e: #general exception catch
         current_app.logger.error(f"error deleting post: {str(e)}")
+        return jsonify({"error": "internal server error"}), 500
+
+@parking_bp.route('/spots/<post_id>/like', methods=['POST'])
+@jwt_required()
+def like_post(post_id):
+    try:
+        current_user_id = get_jwt_identity()
+        user = User.objects(id=current_user_id).first()
+        
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+            
+        post = ParkingSpot.objects(id=post_id).first()
+        
+        if not post:
+            return jsonify({"error": "Post not found"}), 404
+            
+        if user in post.likes:
+            post.likes.remove(user)
+            liked = False
+        else:
+            post.likes.append(user)
+            liked = True
+            
+        post.save()
+        
+        return jsonify({
+            "like_count": len(post.likes),
+            "is_liked": liked
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"error liking post: {str(e)}")
         return jsonify({"error": "internal server error"}), 500
