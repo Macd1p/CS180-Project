@@ -10,18 +10,15 @@ const SECTIONS = [
   { id: "home", label: "Home" },
   { id: "about", label: "About" },
   { id: "how-it-works", label: "How It Works" },
-  { id: "contact", label: "Contact us" },
 ];
 
 export default function SiteHeader() {
   const pathname = usePathname();
   const { isAuthenticated, signOut } = useAuth();
-  
   const [activeId, setActiveId] = useState<string>("home");
   const [menuOpen, setMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
-  
   // Default avatar if none provided
   const [avatarUrl, setAvatarUrl] = useState("/images/default-avatar.svg");
 
@@ -56,12 +53,17 @@ export default function SiteHeader() {
     return () => observer.disconnect();
   }, [pathname]);
 
-  // Load avatar from local storage if available (or could come from auth context if we added it there)
+  //load avatar from local storage if available and listen for updates
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const av = localStorage.getItem("fms_avatar");
-      if (av) setAvatarUrl(av);
-    }
+    const updateAvatar = () => {
+      if (typeof window !== "undefined") {
+        const av = localStorage.getItem("fms_avatar");
+        if (av) setAvatarUrl(av);
+      }
+    };
+    updateAvatar();
+    window.addEventListener("storage", updateAvatar);
+    return () => window.removeEventListener("storage", updateAvatar);
   }, [isAuthenticated]);
 
   const scrollToSection = (id: string) => (e: React.MouseEvent) => {
@@ -121,11 +123,10 @@ export default function SiteHeader() {
                 key={id}
                 href={`/#${id}`}
                 onClick={scrollToSection(id)}
-                className={`pb-1 transition-colors ${
-                  activeId === id && pathname === "/"
-                    ? "border-b-2 border-purple-500 text-gray-900"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
+                className={`pb-1 transition-colors ${activeId === id && pathname === "/"
+                  ? "border-b-2 border-purple-500 text-gray-900"
+                  : "text-gray-600 hover:text-gray-900"
+                  }`}
               >
                 {label}
               </Link>
@@ -135,21 +136,19 @@ export default function SiteHeader() {
             <>
               <Link
                 href="/parking"
-                className={`pb-1 transition-colors ${
-                   pathname === "/parking"
-                    ? "border-b-2 border-purple-500 text-gray-900"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
+                className={`pb-1 transition-colors ${pathname === "/parking"
+                  ? "border-b-2 border-purple-500 text-gray-900"
+                  : "text-gray-600 hover:text-gray-900"
+                  }`}
               >
                 Browse
               </Link>
               <Link
                 href="/post"
-                className={`pb-1 transition-colors ${
-                   pathname === "/post"
-                    ? "border-b-2 border-purple-500 text-gray-900"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
+                className={`pb-1 transition-colors ${pathname === "/post"
+                  ? "border-b-2 border-purple-500 text-gray-900"
+                  : "text-gray-600 hover:text-gray-900"
+                  }`}
               >
                 Posts
               </Link>
