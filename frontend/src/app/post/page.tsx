@@ -104,7 +104,7 @@ const Gallery = () => {
                 {searchFunction.map((post) => (
                     <Link key={post.id} href={`/post/${post.id}`} className="rounded-md shadow-gray-400 hover:shadow-lg cursor-pointer">
                         <div className="relative w-full aspect-square rounded-t-md bg-gray-200">
-                            <Image src={post.url_for_images || "/images/default-avatar.png"} alt={post.title || "Post image"} fill className="object-cover"/>
+                            <Image src={post.url_for_images || "/images/default-avatar.svg"} alt={post.title || "Post image"} fill className="object-cover"/>
                         </div>
                         <div key={post.id} className="p-4 rounded shadow">
                         <h3 className="font-bold">{post.title}</h3>

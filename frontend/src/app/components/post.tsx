@@ -74,7 +74,7 @@ const Post = ({data, postID}:PostData) => {
 
       <div className="flex flex-col items-center">
         <div className="relative w-10/12 bg-white aspect-square rounded-lg overflow-hidden">
-          <Image src={data.url_for_images || "/images/default-avatar.png"} alt = {"Image goes here"} fill className="object-cover"/>
+          <Image src={data.url_for_images || "/images/default-avatar.svg"} alt = {"Image goes here"} fill className="object-cover"/>
         </div>
       </div>
       <div className="mt-3 mb-2">

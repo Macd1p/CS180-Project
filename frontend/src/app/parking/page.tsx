@@ -72,7 +72,7 @@ export default function ParkingBrowsePage() {
 
   const handleMarkerClick = useCallback(
     (id: string) => {
-      router.push(`/posts/${id}`);
+      router.push(`/post/${id}`);
     },
     [router]
   );
