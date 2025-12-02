@@ -47,8 +47,14 @@ def create_comment(parking_spot_id):
         return jsonify({"error": "Internal server error"}), 500
 
 @comment_bp.route('/<parking_spot_id>', methods=['GET'])
+@jwt_required(optional=True)
 def get_comments(parking_spot_id):
     try:
+        current_user_id = get_jwt_identity()
+        current_user = None
+        if current_user_id:
+            current_user = User.objects(id=current_user_id).first()
+
         parking_spot = ParkingSpot.objects(id=parking_spot_id).first()
         if not parking_spot:
             return jsonify({"error": "Parking spot not found"}), 404
@@ -57,15 +63,55 @@ def get_comments(parking_spot_id):
         
         comments_data = []
         for comment in comments:
+            is_liked = False
+            if current_user and comment.likes:
+                is_liked = current_user in comment.likes
+
             comments_data.append({
                 "id": str(comment.id),
                 "text": comment.text,
                 "author": comment.author.username,
-                "created_at": comment.created_at.isoformat()
+                "created_at": comment.created_at.isoformat(),
+                "like_count": len(comment.likes) if comment.likes else 0,
+                "is_liked": is_liked
             })
         
         return jsonify({"comments": comments_data}), 200
         
     except Exception as e:
         current_app.logger.error(f"Error fetching comments: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+
+@comment_bp.route('/<comment_id>/like', methods=['POST'])
+@jwt_required()
+def like_comment(comment_id):
+    #same as like_post
+    try:
+        current_user_id = get_jwt_identity()
+        user = User.objects(id=current_user_id).first()
+        
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+            
+        comment = Comment.objects(id=comment_id).first()
+        
+        if not comment:
+            return jsonify({"error": "Comment not found"}), 404
+            
+        if user in comment.likes:
+            comment.likes.remove(user)
+            liked = False
+        else:
+            comment.likes.append(user)
+            liked = True
+            
+        comment.save()
+        
+        return jsonify({
+            "like_count": len(comment.likes),
+            "is_liked": liked
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Error liking comment: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500

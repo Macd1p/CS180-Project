@@ -56,6 +56,7 @@ class Comment(db.Document):
     author = db.ReferenceField('User', required=True)
     parking_spot = db.ReferenceField('ParkingSpot', required=True)
     created_at = db.DateTimeField(default=datetime.utcnow)
+    likes = db.ListField(db.ReferenceField(User))
     
     meta = {
         'collection': 'comments',
