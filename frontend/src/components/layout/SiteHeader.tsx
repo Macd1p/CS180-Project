@@ -19,10 +19,16 @@ export default function SiteHeader() {
   
   const [activeId, setActiveId] = useState<string>("home");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   
   // Default avatar if none provided
-  const [avatarUrl, setAvatarUrl] = useState("/images/default-avatar.png");
+  const [avatarUrl, setAvatarUrl] = useState("/images/default-avatar.svg");
+
+  // Ensure component is mounted before using pathname
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Track section in view (only relevant for landing page)
   useEffect(() => {
@@ -91,7 +97,7 @@ export default function SiteHeader() {
     setMenuOpen(false);
   };
 
-  const isParkingPage = pathname?.startsWith("/parking") || pathname?.startsWith("/post");
+  const isParkingPage = mounted && (pathname?.startsWith("/parking") || pathname?.startsWith("/post"));
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b bg-white/90 backdrop-blur">
@@ -127,6 +133,16 @@ export default function SiteHeader() {
           ) : (
             // Parking/App Nav
             <>
+              <Link
+                href="/parking"
+                className={`pb-1 transition-colors ${
+                   pathname === "/parking"
+                    ? "border-b-2 border-purple-500 text-gray-900"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                Browse
+              </Link>
               <Link
                 href="/post"
                 className={`pb-1 transition-colors ${

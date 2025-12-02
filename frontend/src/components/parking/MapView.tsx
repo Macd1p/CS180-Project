@@ -37,19 +37,26 @@ export default function MapView({
     };
   }, []);
 
+  // Set up global click handler for popup buttons
+  useEffect(() => {
+    (window as any).__parkingPostClick = (id: string) => {
+      console.log("Global handler called for post:", id);
+      onMarkerClick(id);
+    };
+
+    return () => {
+      delete (window as any).__parkingPostClick;
+    };
+  }, [onMarkerClick]);
+
   // Initialize the map
   useEffect(() => {
     if (!mapRef.current) return;
     if (mapInstance.current) return;
     if (!L) return;
 
-    const initialCenter: [number, number] =
-      spots.length > 0 && spots[0].lat && spots[0].lng
-        ? [spots[0].lat, spots[0].lng]
-        : [34.0522, -118.2437]; // fallback: Los Angeles
-
     const map = L.map(mapRef.current, {
-      center: initialCenter,
+      center: [34.0522, -118.2437], // Default: Los Angeles
       zoom: 13,
     });
 
@@ -62,18 +69,47 @@ export default function MapView({
     mapInstance.current = map;
 
     return () => {
-      map.remove();
+      // Clean up all markers first
+      markersRef.current.forEach((m) => {
+        try {
+          if (m && map.hasLayer(m)) {
+            m.closePopup();
+            m.unbindPopup();
+            map.removeLayer(m);
+          }
+        } catch (e) {
+          // Silently handle cleanup errors
+        }
+      });
+      markersRef.current = [];
+      
+      // Then remove the map
+      try {
+        map.off();
+        map.remove();
+      } catch (e) {
+        // Silently handle cleanup errors
+      }
       mapInstance.current = null;
     };
-  }, [L, spots]);
+  }, [L]); // Only depend on L, not spots
 
   // Update markers when spots change
   useEffect(() => {
     const map = mapInstance.current;
     if (!map || !L) return;
 
-    // Clear existing markers
-    markersRef.current.forEach((m) => map.removeLayer(m));
+    // Clear existing markers with proper cleanup
+    markersRef.current.forEach((m) => {
+      try {
+        if (m && map.hasLayer(m)) {
+          m.closePopup();
+          map.removeLayer(m);
+        }
+      } catch (e) {
+        // Silently handle cleanup errors
+      }
+    });
     markersRef.current = [];
 
     if (!spots.length) return;
@@ -114,7 +150,7 @@ export default function MapView({
       adjustedPositions.push({ lat: displayLat, lng: displayLng });
 
       // Fallbacks for missing backend fields
-      const avatarSrc = (p as any).url_for_images ?? "/images/default-avatar.png";
+      const avatarSrc = (p as any).url_for_images ?? "/images/default-avatar.svg";
       const userName = (p as any).owner ?? "Unknown User";
       const address = p.address ?? "No address available";
       const title = p.title ?? "Untitled Post";
@@ -141,7 +177,7 @@ export default function MapView({
         riseOnHover: true,
       }).addTo(map);
 
-      // Popup content
+      // Popup content - use inline onclick for more reliable handling
       const popupHtml = `
         <div class="parking-popup">
           <div class="parking-popup-header">
@@ -161,7 +197,11 @@ export default function MapView({
             ${address}<br />
           </div>
 
-          <button class="parking-popup-button" data-view-post="${p.id}">
+          <button 
+            class="parking-popup-button" 
+            data-view-post="${p.id}"
+            onclick="window.__parkingPostClick && window.__parkingPostClick('${p.id}')"
+          >
             View post
           </button>
         </div>
@@ -170,23 +210,11 @@ export default function MapView({
       const popup = L.popup({ closeButton: false }).setContent(popupHtml);
       marker.bindPopup(popup);
 
-      popup.on("add", () => {
-        const el = popup.getElement();
-        if (!el) return;
-
-        const btn = el.querySelector(
-          `[data-view-post="${p.id}"]`
-        ) as HTMLButtonElement | null;
-
-        if (btn) {
-          btn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            onMarkerClick(p.id);
-          });
+      marker.on("click", () => {
+        if (marker && map.hasLayer(marker)) {
+          marker.openPopup();
         }
       });
-
-      marker.on("click", () => marker.openPopup());
 
       markersRef.current.push(marker);
       bounds.extend([displayLat, displayLng]);
@@ -195,6 +223,20 @@ export default function MapView({
     if (adjustedPositions.length > 0) {
       map.fitBounds(bounds, { padding: [40, 40] });
     }
+
+    // Cleanup function
+    return () => {
+      markersRef.current.forEach((m) => {
+        try {
+          if (m && map.hasLayer(m)) {
+            m.closePopup();
+            map.removeLayer(m);
+          }
+        } catch (e) {
+          // Silently handle cleanup errors
+        }
+      });
+    };
   }, [L, spots, onMarkerClick]);
 
   return (

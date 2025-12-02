@@ -81,7 +81,7 @@ function SignInContent() {
               //tell the app we’re authenticated
               localStorage.setItem("fms_token", j.access_token);
               localStorage.setItem("fms_authed", "1");
-              localStorage.setItem("fms_avatar", j.profile_image || "/images/default-avatar.png");
+              localStorage.setItem("fms_avatar", j.profile_image || "/images/default-avatar.svg");
 
               localStorage.setItem("fms_profile", JSON.stringify({ //stores profile info
                 username: j.username,
@@ -153,7 +153,7 @@ function SignInContent() {
       //tell the app we're authenticated and store access token
       localStorage.setItem("fms_token", j.access_token);
       localStorage.setItem("fms_authed", "1");
-      localStorage.setItem("fms_avatar", j.profile_image || "/images/default-avatar.png");//set profile image or default avatar
+      localStorage.setItem("fms_avatar", j.profile_image || "/images/default-avatar.svg");//set profile image or default avatar
 
       localStorage.setItem("fms_profile", JSON.stringify({ //sets profile info
         username: j.username,

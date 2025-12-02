@@ -25,7 +25,7 @@ function SignUpContent() {
     username: "",
     email: "",
     password: "",
-    avatarUrl: "/images/default-avatar.png",
+    avatarUrl: "/images/default-avatar.svg",
   });
 
   const [err, setErr] = useState("");
