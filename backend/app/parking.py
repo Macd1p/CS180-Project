@@ -205,7 +205,7 @@ def delete_post(post_id):
         current_app.logger.error(f"error deleting post: {str(e)}")
         return jsonify({"error": "internal server error"}), 500
 
-@parking_bp.route('/spots/<post_id>/like', methods=['POST'])
+@parking_bp.route('/spots/<post_id>', methods=['POST'])
 @jwt_required()
 def like_post(post_id):
     try:
