@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useEffect } from "react";
-import { DEMO_SPOTS, type Parking } from "./_data";
+import type { Parking } from "./_data";
 
 interface Props {
   // Current applied query from the parent (what the map uses)
@@ -10,6 +10,8 @@ interface Props {
   onQueryApply: (value: string) => void;
   maxDistanceMiles: number;
   onMaxDistanceChange: (value: number) => void;
+  // All available spots to search through
+  spots: Parking[];
 }
 
 export default function SearchControls({
@@ -17,6 +19,7 @@ export default function SearchControls({
   onQueryApply,
   maxDistanceMiles,
   onMaxDistanceChange,
+  spots,
 }: Props) {
   // What the user is currently typing
   const [input, setInput] = useState(query);
@@ -31,11 +34,11 @@ export default function SearchControls({
   const suggestions: Parking[] = useMemo(() => {
     const q = input.trim().toLowerCase();
     if (!q) return [];
-    return DEMO_SPOTS.filter((p) => {
-      const haystack = `${p.title} ${p.address}`.toLowerCase();
+    return spots.filter((p) => {
+      const haystack = `${p.title} ${p.address} ${p.owner || ''}`.toLowerCase();
       return haystack.includes(q);
     }).slice(0, 6);
-  }, [input]);
+  }, [input, spots]);
 
   const hasInput = input.trim().length > 0;
   const showNoResults = hasInput && suggestions.length === 0;
@@ -143,7 +146,7 @@ export default function SearchControls({
       <div className="w-full md:w-64">
         <div className="mb-1 flex items-center justify-between">
           <label className="block text-xs font-medium text-gray-600">
-            Max distance from you
+            Map view distance
           </label>
           <span className="text-xs font-semibold">
             {maxDistanceMiles} mi
