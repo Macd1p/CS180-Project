@@ -5,81 +5,103 @@ import CommentSection from "../comments/CommentSection";
 import PostInfo from "../data";
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { IoIosArrowRoundBack } from "react-icons/io";
+import { motion } from "motion/react";
 
 const View = () => {
-    const urlParams = useParams();
-    const postID = urlParams.id as string;
-    const [error, setError] = useState("");
-    const [data, setData] = useState<PostInfo|null>(null);
-    const [success, setSuccess] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [updates, setUpdates] = useState(0);
+  const urlParams = useParams();
+  const postID = urlParams.id as string;
+  const [error, setError] = useState("");
+  const [data, setData] = useState<PostInfo | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [updates, setUpdates] = useState(0);
+  const router = useRouter();
 
-    useEffect(()=> {
-        async function fetchPost() {
-            try {
-                const response = await fetch(`http://localhost:5001/api/parking/spots/${postID}`);
-                if (!response.ok) {
-                    setError("An error regarding fetching the post has occurred");
-                    setLoading(false);
-                    return;
-                }
-
-                const spotInfo = await response.json();
-                const postData: PostInfo = spotInfo.spot;
-                
-                if (!postData) {
-                    setError("Post does not exist");
-                    setLoading(false);
-                    return;
-                }
-
-                setError("");
-                setSuccess(true);
-                setData(postData);
-                setLoading(false);
-
-            } catch (error:unknown) {
-                if (error instanceof Error) {
-                    setError("Error: " + error.message);
-                    setSuccess(false);
-                }
-                else {
-                    setError("An error has occurred.");
-                    setSuccess(false);
-                }
-            }
+  useEffect(() => {
+    async function fetchPost() {
+      try {
+        const response = await fetch(`http://localhost:5001/api/parking/spots/${postID}`);
+        if (!response.ok) {
+          setError("An error regarding fetching the post has occurred");
+          setLoading(false);
+          return;
         }
-        fetchPost();
-    },[postID]);
 
-    if (loading) {
-        return (
-            <div className="w-full flex flex-col items-center mb-3 pt-20 px-4">
-                <div className="text-gray-600">Loading post...</div>
-            </div>
-        );
+        const spotInfo = await response.json();
+        const postData: PostInfo = spotInfo.spot;
+
+        if (!postData) {
+          setError("Post does not exist");
+          setLoading(false);
+          return;
+        }
+
+        setError("");
+        setSuccess(true);
+        setData(postData);
+        setLoading(false);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          setError("Error: " + error.message);
+          setSuccess(false);
+        } else {
+          setError("An error has occurred.");
+          setSuccess(false);
+        }
+      }
     }
+    fetchPost();
+  }, [postID]);
 
-    const handleNewComments = () => {
-        setUpdates(prev=>prev+1);
-    }
-
+  if (loading) {
     return (
-        <div className="w-full flex flex-col items-center mb-3 pt-20 px-4 pb-8">
-            {/*Below needs to be tested*/}
-            {success ? ( 
-                <div className="w-3/4 flex flex-row gap-10">
-                    <div className="w-full flex-col">
-                        <Post data = {data} postID = {postID || ""}/>
-                        <Comment postID={postID || ""} commentSubmitted={handleNewComments}/>
-                    </div>
-                    <CommentSection postID={postID || ""} updates={updates}/>
-                </div>) : 
-                (error && <div className="text-red-600"> {error}</div>)
-            }
-        </div>
+      <div className="w-full flex flex-col items-center mb-3 pt-20 px-4">
+        <div className="text-gray-600">Loading post...</div>
+      </div>
     );
-}
-export default View
+  }
+
+  const handleNewComments = () => {
+    setUpdates((prev) => prev + 1);
+  };
+
+  {
+    /*Go to back to the main Post Page*/
+  }
+  const goBack = () => {
+    router.push("/post");
+  };
+
+  return (
+    <div className="w-full flex flex-col items-center mb-3 pt-20 px-4 pb-8">
+      {/*Below needs to be tested*/}
+      {success ? (
+        <div className="w-full pt-2">
+          <motion.button
+            onClick={goBack}
+            initial={{ scale: 1 }}
+            whileTap={{ scale: 0.9 }}
+            className="flex flex-row items-start bg-black text-white rounded-full pt-1.5 pr-1.5 pb-1.5 ml-5 hover:cursor-pointer"
+          >
+            <IoIosArrowRoundBack className="pt-0.5 text-2xl" />
+            Back to Posts
+          </motion.button>
+          <div className="w-3/4 flex flex-row gap-10 ml-48">
+            <div className="flex-1 min-w-0 flex flex-col">
+              <Post data={data} postID={postID || ""} />
+              <Comment postID={postID || ""} commentSubmitted={handleNewComments} />
+            </div>
+            <div className="flex-shrink-0 w-1/2">
+              <CommentSection postID={postID || ""} updates={updates} />
+            </div>
+          </div>
+        </div>
+      ) : (
+        error && <div className="text-red-600"> {error}</div>
+      )}
+    </div>
+  );
+};
+export default View;

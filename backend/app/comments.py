@@ -82,9 +82,9 @@ def get_comments(parking_spot_id):
         current_app.logger.error(f"Error fetching comments: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
 
-@comment_bp.route('/<comment_id>/like', methods=['POST'])
+@comment_bp.route('/<parking_spot_id>/<comment_id>', methods=['POST'])
 @jwt_required()
-def like_comment(comment_id):
+def like_comment(parking_spot_id, comment_id):
     #same as like_post
     try:
         current_user_id = get_jwt_identity()
