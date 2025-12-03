@@ -64,13 +64,10 @@ const Delete = ({ open, setOpen, postID }: DeleteModal) => {
             {/*Message for the user to know if the post was submitted*/}
             {success ? (
               <div className="flex items-center text-green-600 font-medium">
-                {" "}
                 <IoMdCheckmarkCircleOutline /> Successful Posting!
               </div>
-            ) : (
-              error && (
+            ) : (error && (
                 <div className="flex items-center text-red-600">
-                  {" "}
                   <MdErrorOutline /> Error: {error}
                 </div>
               )

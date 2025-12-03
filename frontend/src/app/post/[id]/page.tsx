@@ -22,12 +22,20 @@ const View = () => {
   useEffect(() => {
     async function fetchPost() {
       try {
-        const response = await fetch(`http://localhost:5001/api/parking/spots/${postID}`);
-        if (!response.ok) {
-          setError("An error regarding fetching the post has occurred");
-          setLoading(false);
+        // Fetch token to make sure that the like button remains liked until the user unlike the post
+        const token = localStorage.getItem("fms_token");
+        console.log("Current Token:", token); //log token for debugging
+        if (!token) {
+          setError("You must be logged in to like this post.");
           return;
         }
+
+        const response = await fetch(`http://localhost:5001/api/parking/spots/${postID}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
         const spotInfo = await response.json();
         const postData: PostInfo = spotInfo.spot;
