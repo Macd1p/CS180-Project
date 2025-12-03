@@ -3,13 +3,10 @@ import LikeButton from "./LikeComment";
 import { useState, useEffect } from "react";
 import CommentInformation from "./info";
 import { useRouter } from "next/navigation";
+
 interface PostCommentSection {
   postID: string;
   updates?: number;
-}
-
-{
-  /*Need to see if the comment gets stored in the backend*/
 }
 
 const CommentSection = ({ postID, updates }: PostCommentSection) => {
@@ -20,6 +17,7 @@ const CommentSection = ({ postID, updates }: PostCommentSection) => {
   useEffect(() => {
     async function fetchCommentSection() {
       try {
+        // Fetch token to make sure that the like button remains liked until the user unlike the comment
         const token = localStorage.getItem("fms_token");
         console.log("Current Token:", token); //log token for debugging
         if (!token) {
