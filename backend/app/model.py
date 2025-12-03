@@ -65,3 +65,17 @@ class Comment(db.Document):
             'created_at'
         ]
     }
+class Message(db.Document):
+    sender = db.ReferenceField(User, required=True)
+    receiver = db.ReferenceField(User, required=True)
+    message = db.StringField(required=True)
+    created_at = db.DateTimeField(default=datetime.utcnow)
+    
+    meta = {
+        'collection': 'messages',
+        'indexes': [
+            'sender',
+            'receiver',
+            'created_at'
+        ]
+    }
