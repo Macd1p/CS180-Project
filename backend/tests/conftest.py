@@ -32,17 +32,23 @@ def app():
     connect('parking_app_test_db', host='localhost', port=27017)
     
     with app.app_context():
-        #  this will clear the database before each test
-        from app.model import User
+        #this will clear the database before each test for documents
+        from app.model import User, ParkingSpot, Comment, Message
         User.objects().delete()
+        ParkingSpot.objects().delete()
+        Comment.objects().delete()
+        Message.objects().delete()
         
         yield app
     
     #cleans up after test
     with app.app_context():
         try:
-            from app.model import User
+            from app.model import User, ParkingSpot, Comment, Message
             User.objects().delete()
+            ParkingSpot.objects().delete()
+            Comment.objects().delete()
+            Message.objects().delete()
         except Exception:
             pass
     
