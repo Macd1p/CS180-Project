@@ -39,4 +39,7 @@ def create_app():
     from . import comments
     app.register_blueprint(comments.comment_bp)
 
+    from . import message
+    app.register_blueprint(message.message_bp)
+
     return app
