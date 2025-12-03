@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import MapView from "../../components/parking/MapView";
 import SearchControls from "../../components/parking/SearchControls";
 import type { Parking } from "../../components/parking/_data";
-import { USER_LOCATION, distanceInMeters } from "../../components/parking/geo";
 import { useAuth } from "../providers/AuthProvider";
 
 export default function ParkingBrowsePage() {
@@ -24,7 +23,7 @@ export default function ParkingBrowsePage() {
   const [error, setError] = useState<string | null>(null);
 
   const [query, setQuery] = useState("");
-  const [maxDistanceMiles, setMaxDistanceMiles] = useState(5000);
+  const [maxDistanceMiles, setMaxDistanceMiles] = useState(5);
 
   // Fetch from Flask backend
   useEffect(() => {
@@ -50,25 +49,27 @@ export default function ParkingBrowsePage() {
     fetchSpots();
   }, [isAuthenticated]);
 
-  // Filter spots based on distance and query
+  // Filter spots based on query only (not distance)
   const filteredSpots: Parking[] = useMemo(() => {
     if (!spots.length) return [];
 
     const q = query.trim().toLowerCase();
-    const maxMeters = maxDistanceMiles * 1609.34;
 
-    return spots.filter((p) => {
+    console.log(`Filtering ${spots.length} spots with search query: "${q}"`);
+
+    const filtered = spots.filter((p) => {
       // Skip posts with no coordinates
       if (!p.lat || !p.lng) return false;
 
-      const d = distanceInMeters(USER_LOCATION.lat, USER_LOCATION.lng, p.lat, p.lng);
-      if (d > maxMeters) return false;
-
+      // Only filter by search query, not distance
       if (!q) return true;
       const haystack = `${p.title} ${p.address} ${p.owner}`.toLowerCase();
       return haystack.includes(q);
     });
-  }, [spots, query, maxDistanceMiles]);
+
+    console.log(`Filtered to ${filtered.length} spots`);
+    return filtered;
+  }, [spots, query]);
 
   const handleMarkerClick = useCallback(
     (id: string) => {
@@ -79,10 +80,10 @@ export default function ParkingBrowsePage() {
 
   const handleResetFilters = () => {
     setQuery("");
-    setMaxDistanceMiles(5000);
+    setMaxDistanceMiles(5);
   };
 
-  const showReset = query.trim() !== "" || maxDistanceMiles !== 5000;
+  const showReset = query.trim() !== "" || maxDistanceMiles !== 5;
 
   if (!isAuthenticated) return null; // or a loading spinner while redirecting
   if (loading) return <p className="pt-20 text-center text-gray-600">Loading posts...</p>;
@@ -92,7 +93,7 @@ export default function ParkingBrowsePage() {
     <main className="mx-auto max-w-[1400px] px-4 pb-8 pt-20">
       <h1 className="mb-2 text-2xl font-bold">Browse parking posts</h1>
       <p className="mb-4 text-sm text-gray-600">
-        Search public posts near you. Click a marker on the map to open the post.
+        Search public posts and adjust the map view. The distance selector controls the zoom level. Click a marker to open the post.
       </p>
 
       <section className="relative z-30 mb-4 rounded-2xl border bg-white/90 p-4 shadow-sm">
@@ -101,6 +102,7 @@ export default function ParkingBrowsePage() {
           onQueryApply={setQuery}
           maxDistanceMiles={maxDistanceMiles}
           onMaxDistanceChange={setMaxDistanceMiles}
+          spots={spots}
         />
       </section>
 
@@ -110,6 +112,7 @@ export default function ParkingBrowsePage() {
           onMarkerClick={handleMarkerClick}
           onResetFilters={handleResetFilters}
           showReset={showReset}
+          maxDistanceMiles={maxDistanceMiles}
         />
         {filteredSpots.length === 0 && (
           <p className="mt-3 text-xs text-gray-500 text-center">

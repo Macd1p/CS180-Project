@@ -11,6 +11,7 @@ interface MapViewProps {
   onMarkerClick: (id: string) => void;
   onResetFilters?: () => void;
   showReset?: boolean;
+  maxDistanceMiles: number; // For controlling zoom level
 }
 
 export default function MapView({
@@ -18,6 +19,7 @@ export default function MapView({
   onMarkerClick,
   onResetFilters,
   showReset = false,
+  maxDistanceMiles,
 }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapInstance = useRef<any | null>(null);
@@ -220,8 +222,27 @@ export default function MapView({
       bounds.extend([displayLat, displayLng]);
     });
 
+    // Always show all markers, but zoom based on the selected distance
     if (adjustedPositions.length > 0) {
-      map.fitBounds(bounds, { padding: [40, 40] });
+      // Calculate zoom level based on maxDistanceMiles
+      // Smaller distance = closer zoom, larger distance = wider zoom
+      let zoomLevel: number;
+      if (maxDistanceMiles <= 1) {
+        zoomLevel = 15; // Very close zoom for 1 mile
+      } else if (maxDistanceMiles <= 5) {
+        zoomLevel = 13; // Medium-close zoom for 5 miles
+      } else if (maxDistanceMiles <= 10) {
+        zoomLevel = 12; // Medium zoom for 10 miles
+      } else if (maxDistanceMiles <= 20) {
+        zoomLevel = 11; // Medium-wide zoom for 20 miles
+      } else {
+        zoomLevel = 10; // Wide zoom for 50+ miles
+      }
+
+      console.log(`MapView: Setting zoom to ${zoomLevel} for ${maxDistanceMiles} miles view`);
+      
+      // Center on user location and set zoom
+      map.setView([34.0522, -118.2437], zoomLevel, { animate: true });
     }
 
     // Cleanup function
@@ -237,7 +258,7 @@ export default function MapView({
         }
       });
     };
-  }, [L, spots, onMarkerClick]);
+  }, [L, spots, onMarkerClick, maxDistanceMiles]);
 
   return (
     <div className="relative h-[70vh] w-full rounded-2xl border overflow-hidden">
