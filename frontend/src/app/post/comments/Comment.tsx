@@ -3,9 +3,6 @@ import { Textarea, Field, Label } from "@headlessui/react";
 import { useState } from "react";
 import { IoMdCheckmarkCircleOutline } from "react-icons/io";
 import { MdErrorOutline } from "react-icons/md";
-{
-  /*Need to see if the comment gets stored in the backend*/
-}
 
 interface CommentInfo {
   postID: string;
@@ -89,13 +86,10 @@ const Comment = ({ postID, commentSubmitted }: CommentInfo) => {
       {/*Message for the user to know if the comment was submitted*/}
       {success ? (
         <div className="flex items-center text-green-600 font-medium">
-          {" "}
           <IoMdCheckmarkCircleOutline /> Successful Posting!
         </div>
-      ) : (
-        error && (
+      ) : (error && (
           <div className="text-red-600">
-            {" "}
             <MdErrorOutline /> {error}
           </div>
         )
