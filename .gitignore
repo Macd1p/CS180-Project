@@ -35,3 +35,4 @@ backend/tests/__pycache__/
 backend/htmlcov/
 backend/.pytest_cache/
 backend/.coverage
+.venv/pyvenv.cfg
