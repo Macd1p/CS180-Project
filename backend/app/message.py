@@ -56,13 +56,13 @@ def inbox():
         if not current_user:
             return jsonify({"error": "user not found"}), 404
 
-        from mongoengine.queryset.visitor import Q #import Q for complex queries
+        from mongoengine.queryset.visitor import Q #import Q for using or logic in queries
         
-        messages = Message.objects(
+        messages = Message.objects(#get messages where user is either sender or receiver
             Q(sender=current_user) | Q(receiver=current_user)
         ).order_by('-created_at')
         
-        #groups by other user to get unique conversations
+        #dictionary that groups by other user to get unique conversations
         conversations = {}
         for msg in messages:
             #determine who the other person is
@@ -73,7 +73,7 @@ def inbox():
                 
             other_user_id = str(other_user.id)
             
-            #since its ordered by created_at in descending, the first time we see a user its the most recent message
+            #since its ordered by created_at in descending the first time we see a user its the most recent message
             if other_user_id not in conversations:
                 conversations[other_user_id] = {
                     "user_id": other_user_id,
@@ -96,7 +96,7 @@ def get_conversation(user_id):
     try:
         current_user_id = get_jwt_identity()
         current_user = User.objects(id=current_user_id).first()
-        second_user = User.objects(id=user_id).first() 
+        second_user = User.objects(id=user_id).first() #get second user from paramter
         
         if not current_user or not second_user: #check if users exist
             return jsonify({"error": "user not found"}), 404
@@ -117,7 +117,7 @@ def get_conversation(user_id):
                 "timestamp": msg.created_at
             })
             
-        return jsonify({"messages": chat_history}), 200    
+        return jsonify({"messages": chat_history}), 200  #list of messages  
     except Exception as e:
         current_app.logger.error(f"error fetching conversation: {str(e)}")
         return jsonify({"error": "internal server error"}), 500
