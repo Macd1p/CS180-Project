@@ -5,7 +5,7 @@ import { IoMdCheckmarkCircleOutline } from "react-icons/io";
 import { MdErrorOutline } from "react-icons/md";
 import Image from "next/image";
 
-{/*Create is the Post Submission Form*/}
+{/*Create is the Post Submission Form*/ }
 const Create = () => {
   const [title, setTitle] = useState("");
   const [image, setImage] = useState<File | null>(null);
@@ -201,7 +201,7 @@ const Create = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-lg mx-auto p-4 md:p-0">
+    <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto">
       {/*Create a Post Title*/}
       <div className="font-semibold text-3xl pb-1 underline">Create a Post</div>
 

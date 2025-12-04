@@ -95,7 +95,7 @@ const Gallery = () => {
       </div>
       {search && <div className="text-sm text-gray-500">Found the following post(s) below that matches {search}</div>}
       {success ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-4">
+        <div className="grid grid-cols-3 gap-8 mb-4 max-w-7xl mx-auto">
           {/* if successful, map over the posts state to display each post */}
           {searchFunction.map((post, index) => (
             <motion.div
