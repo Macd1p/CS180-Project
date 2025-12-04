@@ -1,7 +1,11 @@
-const Header = () => {
+interface HeaderText {
+  header: string;
+}
+
+const Header = ({header}:HeaderText) => {
   return (
     <div className="underline text-3xl font-semibold">
-      Inbox
+      {header}
     </div>
   )};
 
