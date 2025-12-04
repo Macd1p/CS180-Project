@@ -22,18 +22,18 @@ export default function Hero() {
       {/* Content */}
       <div className="relative mx-auto flex max-w-6xl flex-col justify-center gap-6 px-4 py-20 md:py-28">
         <h1 className="max-w-3xl text-5xl font-extrabold leading-tight tracking-tight md:text-6xl lg:text-7xl">
-          Find your perfect spot.
+          The Social Network for Parking.
         </h1>
         <p className="max-w-xl text-base text-gray-200 md:text-lg">
-          Easily share and find parking availability in real-time with a
-          community-driven platform built for busy campuses and cities.
+          Join a community of drivers helping each other. Share real-time spots,
+          connect with locals, and stop circling the block alone.
         </p>
         <div className="flex flex-wrap gap-4">
           <Link
             href="/parking"
             className="rounded-full bg-green-500 px-6 py-3 text-sm font-semibold text-gray-900 shadow hover:bg-green-400"
           >
-            Browse parking
+            Browse Parking Post
           </Link>
           <a
             href="#how-it-works"

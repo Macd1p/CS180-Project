@@ -10,23 +10,17 @@ export default function About() {
             PARKING MADE EASY
           </p>
           <h2 className="mb-4 text-3xl font-bold md:text-4xl">
-            Find your perfect spot effortlessly
+            Powered by People, Not Sensors
           </h2>
           <p className="mb-3 text-sm text-gray-600 md:text-base">
-            FindMySpot connects drivers with real-time, community-sourced
-            parking spots near campuses, events, and busy streets.
+            FindMySpot isn't just a map—it's a living network of drivers.
+            Connect with spot hunters, build your reputation, and turn parking into a team sport.
           </p>
           <p className="mb-6 text-sm text-gray-600 md:text-base">
-            Post available spots with photos and details, discover hidden gems
-            shared by others, and cut down on circling the block. Our simple
-            interface makes it fast to share, search, and park.
+            Post available spots to earn community trust, discover hidden gems
+            shared by locals, and help your neighbors save time.
           </p>
-          <a
-            href="#contact"
-            className="text-sm font-semibold text-green-700 underline-offset-4 hover:underline"
-          >
-            Get in touch
-          </a>
+
         </div>
 
         {/* Right: nicely sized image */}
