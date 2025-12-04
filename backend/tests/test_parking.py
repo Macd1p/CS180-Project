@@ -514,3 +514,88 @@ def test_upload_permission_success(client):
         assert data['cloud_name'] == 'test-cloud'
         assert data['api_key'] == 'test-api-key'
 
+def test_get_parking_spots_db_error(client):
+    from unittest.mock import patch
+    user = User(email='geterr@g.com', username='geterr', password='p', firstname='g', lastname='e', login_method='local')
+    user.save()
+    token = create_access_token(str(user.id))
+
+    with patch('app.parking.ParkingSpot.objects') as mock_objects:
+        mock_objects.side_effect = Exception("DB Error")
+        response = client.get('/api/parking/spots', headers={'Authorization': f'Bearer {token}'})
+        
+        assert response.status_code == 500
+        assert response.json['error'] == 'Internal server error'
+
+def test_get_single_parking_spot_db_error(client):
+    from unittest.mock import patch
+    user = User(email='geterr@g.com', username='geterr', password='p', firstname='g', lastname='e', login_method='local')
+    user.save()
+    token = create_access_token(str(user.id))
+    
+    with patch('app.parking.ParkingSpot.objects') as mock_objects:
+        mock_objects.side_effect = Exception("DB Error")
+        response = client.get(f'/api/parking/spots/{user.id}', headers={'Authorization': f'Bearer {token}'})
+        
+        assert response.status_code == 500
+        assert response.json['error'] == 'Internal server error'
+
+def test_missing_post_id(client):
+    user = User(email='ghost@g.com',username='ghost', password='p', firstname='g', lastname='h', login_method='local')
+    user.save()
+    token = create_access_token(str(user.id))
+    
+    response = client.put('/api/parking/update-post/000000000000000000000001', json={'title': 'new'}, headers={'Authorization': f'Bearer {token}'})
+    
+    assert response.status_code == 400
+    assert response.json['error'] == 'Missing POST ID'
+
+def test_delete_postnotfound(client):
+    user = User(email='ghost@g.com',username='ghost', password='p', firstname='g', lastname='h', login_method='local')
+    user.save()
+    token = create_access_token(str(user.id))
+    
+    response = client.delete('/api/parking/spots/000000000000000000000001', headers={'Authorization': f'Bearer {token}'})
+    
+    assert response.status_code == 404
+    assert response.json['error'] == 'post not found or unauthorized'
+
+
+def test_like_usernotfound(client):
+    user = User(email='ghostlike@g.com',username='ghostlike', password='p', firstname='g', lastname='h', login_method='local')
+    user.save()
+    token = create_access_token(str(user.id))
+    spot = ParkingSpot(title='t', address='a', owner=user, lat=0, lng=0)
+    spot.save()
+    user.delete()
+    
+    response = client.post(f'/api/parking/spots/{spot.id}', headers={'Authorization': f'Bearer {token}'})
+    assert response.status_code == 404
+    assert response.json['error'] == 'User not found'
+
+def test_like_postnotfound(client):
+    user = User(email='ghostlike@g.com',username='ghostlike', password='p', firstname='g', lastname='h', login_method='local')
+    user.save()
+    token = create_access_token(str(user.id))
+    spot = ParkingSpot(title='t', address='a', owner=user, lat=0, lng=0)
+    spot.save()
+    spot.delete()
+    
+    response = client.post(f'/api/parking/spots/{spot.id}', headers={'Authorization': f'Bearer {token}'})
+    assert response.status_code == 404
+    assert response.json['error'] == 'Post not found'
+
+
+def test_like_db_error(client):
+    from unittest.mock import patch
+    user = User(email='ghostlike@g.com',username='ghostlike', password='p', firstname='g', lastname='h', login_method='local')
+    user.save()
+    token = create_access_token(str(user.id))
+    spot = ParkingSpot(title='t', address='a', owner=user, lat=0, lng=0)
+    spot.save()
+
+    with patch('app.parking.ParkingSpot.objects') as mock_objects:
+        mock_objects.side_effect = Exception("DB Error")
+        response = client.post(f'/api/parking/spots/{spot.id}', headers={'Authorization': f'Bearer {token}'})
+        assert response.status_code == 500
+        assert response.json['error'] == 'internal server error'
