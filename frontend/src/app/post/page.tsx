@@ -89,13 +89,13 @@ const Gallery = () => {
       <div className="flex justify-center items-center">
         <h1 className="text-2xl font-semibold underline">Posts</h1>
       </div>
-      <div className="relative p-2 w-full max-w-xs mx-auto">
+      <div className="relative p-2 w-64">
         <IoIosSearch className="absolute text-xl mt-1 ml-1 text-gray-500" />
-        <Input value={search} onChange={handleSearch} className="w-full pl-8 py-1 border rounded-sm hover:shadow-md" placeholder="Search..." />
+        <Input value={search} onChange={handleSearch} className="pl-6 border rounded-sm hover:shadow-md" placeholder="Search..." />
       </div>
       {search && <div className="text-sm text-gray-500">Found the following post(s) below that matches {search}</div>}
       {success ? (
-        <div className="grid grid-cols-3 gap-8 mb-4 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-4">
           {/* if successful, map over the posts state to display each post */}
           {searchFunction.map((post, index) => (
             <motion.div
