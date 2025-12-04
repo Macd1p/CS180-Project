@@ -169,7 +169,7 @@ const Update = ({ open, setOpen, postID }: UpdateModal) => {
   return (
     <Dialog open={open} onClose={() => setOpen(false)}>
       <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
-        <DialogPanel className="border bg-white p-5 space-y-2 w-100">
+        <DialogPanel className="border bg-white p-5 space-y-2 w-[500px] rounded-xl shadow-xl">
           <DialogTitle className="font-semibold text-xl">Edit Post</DialogTitle>
           <Description className="text-sm">Enter the changes you want to make to your post below</Description>
           <form onSubmit={handleSave}>
@@ -209,10 +209,10 @@ const Update = ({ open, setOpen, postID }: UpdateModal) => {
                   <IoMdCheckmarkCircleOutline /> Successful Update!
                 </div>
               ) : (error && (
-                  <div className="flex items-center text-red-600">
-                    <MdErrorOutline /> Error: {error}
-                  </div>
-                )
+                <div className="flex items-center text-red-600">
+                  <MdErrorOutline /> Error: {error}
+                </div>
+              )
               )}
             </div>
           </form>

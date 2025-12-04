@@ -96,12 +96,12 @@ const View = () => {
             <IoIosArrowRoundBack className="pt-0.5 text-2xl" />
             Back to Posts
           </motion.button>
-          <div className="w-3/4 flex flex-row gap-10 ml-48">
+          <div className="w-full max-w-5xl mx-auto flex flex-row gap-10 mt-8">
             <div className="flex-1 min-w-0 flex flex-col">
               <Post data={data} postID={postID || ""} />
               <Comment postID={postID || ""} commentSubmitted={handleNewComments} />
             </div>
-            <div className="flex-shrink-0 w-1/2">
+            <div className="w-1/3 flex-shrink-0">
               <CommentSection postID={postID || ""} updates={updates} />
             </div>
           </div>
