@@ -88,11 +88,11 @@ export default function HowItWorks() {
             </div>
             <div className="px-5 pb-5 pt-4">
               <h3 className="text-base font-semibold">
-                Step 4: Engage with the community
+                Step 4: Build your reputation
               </h3>
               <p className="mt-1 text-sm text-gray-600">
-                Rate spots, follow trusted posters, and help others spend less
-                time circling.
+                Rate spots, follow trusted posters, and earn badges as you help
+                others spend less time circling.
               </p>
             </div>
           </div>
