@@ -40,3 +40,4 @@ backend/.coverage
 .venv-1
 venv
 backend/config.py
+backend/config.py
