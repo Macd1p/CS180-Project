@@ -99,7 +99,7 @@ export default function SiteHeader() {
     setMenuOpen(false);
   };
 
-  const isParkingPage = mounted && (pathname?.startsWith("/parking") || pathname?.startsWith("/post"));
+  const isParkingPage = mounted && (pathname?.startsWith("/parking") || pathname?.startsWith("/post") || pathname?.startsWith("/inbox"));
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b bg-white/90 backdrop-blur">
@@ -134,6 +134,15 @@ export default function SiteHeader() {
           ) : (
             // Parking/App Nav
             <>
+              <Link
+                href="/inbox"
+                className={`pb-1 transition-colors ${pathname === "/inbox"
+                  ? "border-b-2 border-purple-500 text-gray-900"
+                  : "text-gray-600 hover:text-gray-900"
+                  }`}
+              >
+                Inbox
+              </Link>
               <Link
                 href="/parking"
                 className={`pb-1 transition-colors ${pathname === "/parking"
