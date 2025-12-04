@@ -12,6 +12,8 @@ interface Props {
   onMaxDistanceChange: (value: number) => void;
   // All available spots to search through
   spots: Parking[];
+  // Called when a spot is selected from search
+  onSpotSelect?: (spotId: string) => void;
 }
 
 export default function SearchControls({
@@ -20,6 +22,7 @@ export default function SearchControls({
   maxDistanceMiles,
   onMaxDistanceChange,
   spots,
+  onSpotSelect,
 }: Props) {
   // What the user is currently typing
   const [input, setInput] = useState(query);
@@ -51,6 +54,10 @@ export default function SearchControls({
   };
 
   const handleSelect = (spot: Parking) => {
+    // Notify parent to zoom to this spot
+    if (onSpotSelect) {
+      onSpotSelect(spot.id);
+    }
     // You can change this to spot.address if you want address in the box
     applyValue(spot.title);
   };

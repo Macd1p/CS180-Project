@@ -24,6 +24,7 @@ export default function ParkingBrowsePage() {
 
   const [query, setQuery] = useState("");
   const [maxDistanceMiles, setMaxDistanceMiles] = useState(5);
+  const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
 
   // Fetch from Flask backend
   useEffect(() => {
@@ -78,6 +79,11 @@ export default function ParkingBrowsePage() {
     [router]
   );
 
+  const handleSpotSelect = useCallback((spotId: string) => {
+    setSelectedSpotId(spotId);
+    setQuery(""); // Clear search after selection
+  }, []);
+
   const handleResetFilters = () => {
     setQuery("");
     setMaxDistanceMiles(5);
@@ -103,6 +109,7 @@ export default function ParkingBrowsePage() {
           maxDistanceMiles={maxDistanceMiles}
           onMaxDistanceChange={setMaxDistanceMiles}
           spots={spots}
+          onSpotSelect={handleSpotSelect}
         />
       </section>
 
@@ -113,6 +120,7 @@ export default function ParkingBrowsePage() {
           onResetFilters={handleResetFilters}
           showReset={showReset}
           maxDistanceMiles={maxDistanceMiles}
+          selectedSpotId={selectedSpotId}
         />
         {filteredSpots.length === 0 && (
           <p className="mt-3 text-xs text-gray-500 text-center">
