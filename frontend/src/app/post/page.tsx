@@ -89,9 +89,9 @@ const Gallery = () => {
       <div className="flex justify-center items-center">
         <h1 className="text-2xl font-semibold underline">Posts</h1>
       </div>
-      <div className="relative p-2 w-64">
+      <div className="relative p-2 w-full max-w-xs mx-auto">
         <IoIosSearch className="absolute text-xl mt-1 ml-1 text-gray-500" />
-        <Input value={search} onChange={handleSearch} className="pl-6 border rounded-sm hover:shadow-md" placeholder="Search..." />
+        <Input value={search} onChange={handleSearch} className="w-full pl-8 py-1 border rounded-sm hover:shadow-md" placeholder="Search..." />
       </div>
       {search && <div className="text-sm text-gray-500">Found the following post(s) below that matches {search}</div>}
       {success ? (
