@@ -201,7 +201,7 @@ const Create = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-1/3">
+    <form onSubmit={handleSubmit} className="w-full max-w-lg mx-auto p-4 md:p-0">
       {/*Create a Post Title*/}
       <div className="font-semibold text-3xl pb-1 underline">Create a Post</div>
 
@@ -216,16 +216,16 @@ const Create = () => {
         <Label className="font-medium text-lg">Image File:</Label>
         <div>
           {preview ? (<div className="flex flex-col gap-2">
-              <div className="relative aspect-square rounded-lg overflow-hidden">
-                <Image src={preview} alt="Preview of the image" fill className="object-cover" />
+            <div className="relative aspect-square rounded-lg overflow-hidden">
+              <Image src={preview} alt="Preview of the image" fill className="object-cover" />
+            </div>
+            <div className="relative cursor-pointer">
+              <Input type="file" accept="image/*" onChange={receiveImage} className="absolute inset-0 opacity-0" />
+              <div className="border pl-1 rounded-lg">
+                <div className="text-gray-400">Upload a new image</div>
               </div>
-              <div className="relative cursor-pointer">
-                <Input type="file" accept="image/*" onChange={receiveImage} className="absolute inset-0 opacity-0" />
-                <div className="border pl-1 rounded-lg">
-                  <div className="text-gray-400">Upload a new image</div>
-                </div>
-              </div>
-            </div>) : 
+            </div>
+          </div>) :
             (<div>
               <Input type="file" accept="image/*" onChange={receiveImage} className="absolute inset-0 opacity-0 cursor-pointer" />
               <div className="border pl-1 rounded-lg cursor-pointer">
@@ -257,7 +257,7 @@ const Create = () => {
       </Field>
 
       {/*Submission Button*/}
-      <button type="submit" className="bg-blue-500 text-white rounded-lg w-25 mt-2 ml-1 mb-2 cursor-pointer hover:shadow hover:bg-blue-400">
+      <button type="submit" className="bg-blue-500 text-white rounded-lg w-full md:w-auto px-6 py-2 mt-4 mb-2 cursor-pointer hover:shadow hover:bg-blue-400 font-semibold transition-colors">
         Create Post
       </button>
       {/*Message for the user to know if the post was submitted*/}
