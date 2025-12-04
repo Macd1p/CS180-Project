@@ -1,9 +1,9 @@
 // src/app/parking/geo.ts
 
 export const USER_LOCATION = {
-    // fake "current user" location – downtown LA
-    lat: 34.0522,
-    lng: -118.2437,
+    // UC Riverside campus location
+    lat: 33.9730,
+    lng: -117.3325,
   };
   
   export function distanceInMeters(

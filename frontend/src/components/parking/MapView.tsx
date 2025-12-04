@@ -12,6 +12,7 @@ interface MapViewProps {
   onResetFilters?: () => void;
   showReset?: boolean;
   maxDistanceMiles: number; // For controlling zoom level
+  selectedSpotId?: string | null; // For zooming to selected search result
 }
 
 export default function MapView({
@@ -20,6 +21,7 @@ export default function MapView({
   onResetFilters,
   showReset = false,
   maxDistanceMiles,
+  selectedSpotId = null,
 }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapInstance = useRef<any | null>(null);
@@ -58,7 +60,7 @@ export default function MapView({
     if (!L) return;
 
     const map = L.map(mapRef.current, {
-      center: [34.0522, -118.2437], // Default: Los Angeles
+      center: [33.9730, -117.3325], // Default: UC Riverside
       zoom: 13,
     });
 
@@ -241,8 +243,8 @@ export default function MapView({
 
       console.log(`MapView: Setting zoom to ${zoomLevel} for ${maxDistanceMiles} miles view`);
       
-      // Center on user location and set zoom
-      map.setView([34.0522, -118.2437], zoomLevel, { animate: true });
+      // Center on UC Riverside and set zoom
+      map.setView([33.9730, -117.3325], zoomLevel, { animate: true });
     }
 
     // Cleanup function
@@ -259,6 +261,31 @@ export default function MapView({
       });
     };
   }, [L, spots, onMarkerClick, maxDistanceMiles]);
+
+  // Zoom to selected spot from search
+  useEffect(() => {
+    const map = mapInstance.current;
+    if (!map || !selectedSpotId || !spots.length) return;
+
+    const selectedSpot = spots.find(s => s.id === selectedSpotId);
+    if (selectedSpot && selectedSpot.lat && selectedSpot.lng) {
+      const spotLat = selectedSpot.lat;
+      const spotLng = selectedSpot.lng;
+      
+      console.log(`MapView: Zooming to selected spot at ${spotLat}, ${spotLng}`);
+      map.setView([spotLat, spotLng], 16, { animate: true });
+      
+      // Find and open the popup for this marker
+      const marker = markersRef.current.find((m: any) => {
+        const pos = m.getLatLng();
+        return Math.abs(pos.lat - spotLat) < 0.0001 && Math.abs(pos.lng - spotLng) < 0.0001;
+      });
+      
+      if (marker && map.hasLayer(marker)) {
+        setTimeout(() => marker.openPopup(), 300);
+      }
+    }
+  }, [selectedSpotId, spots]);
 
   return (
     <div className="relative h-[70vh] w-full rounded-2xl border overflow-hidden">
