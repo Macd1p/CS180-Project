@@ -10,14 +10,14 @@ export default function About() {
             PARKING MADE EASY
           </p>
           <h2 className="mb-4 text-3xl font-bold md:text-4xl">
-            Powered by People, Not Sensors
+            Powered by People
           </h2>
           <p className="mb-3 text-sm text-gray-600 md:text-base">
-            FindMySpot isn't just a map—it's a living network of drivers.
-            Connect with spot hunters, build your reputation, and turn parking into a team sport.
+            FindMySpot is a network of drivers.
+            You can connect with spot hunters and turn parking into entertainment.
           </p>
           <p className="mb-6 text-sm text-gray-600 md:text-base">
-            Post available spots to earn community trust, discover hidden gems
+            Post available spots to help others find parking, discover hidden gems
             shared by locals, and help your neighbors save time.
           </p>
 
