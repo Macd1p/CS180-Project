@@ -8,7 +8,7 @@ const NewMessage = () => {
   
   return (
     <div>
-      <button onClick = {() => setNM(true)} className="flex flex-row gap-1 border rounded-lg pr-1 pl-1 cursor-pointer">
+      <button onClick = {() => setNM(true)} className="flex flex-row gap-1 border bg-black text-white rounded-lg p-1 cursor-pointer hover:bg-gray-600">
         <BiMessageAdd className="mt-1 text-xl" />
         New Message
       </button>

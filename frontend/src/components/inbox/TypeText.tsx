@@ -32,7 +32,7 @@ const TypeText = ({receiver, sentMessage}:TypeMessage) => {
       return;
     }
 
-    const messageSubmission = { receiver_username: receiver.trim(), text: message.trim() };
+    const messageSubmission = { receiver_username: receiver.trim(), message: message.trim() };
 
     try {
       const response = await fetch(`/api/message/send`, {
@@ -66,22 +66,17 @@ const TypeText = ({receiver, sentMessage}:TypeMessage) => {
       }, 2000);
 
     } catch (error) {
-      if (error instanceof Error) {
-        setError("Error: " + error.message);
-        setSuccess(false);
-      } else {
-        setError("An error has occurred.");
-        setSuccess(false);
-      }
+      setError("An error has occurred.");
+      setSuccess(false);
     }
   };
 
   return (
-    <form onSubmit={handleSend} className="w-full mb-2">
+    <form onSubmit={handleSend} className="w-full">
       <Field className="flex flex-col">
-        <Textarea value={message} onChange={inputMessage} className="border-1 mb-2 rounded-sm p-1" placeholder="Type your message here"></Textarea>
+        <Textarea value={message} onChange={inputMessage} className="border mb-2 rounded-sm p-1" placeholder="Type your message here"></Textarea>
       </Field>
-      <button type="submit" className="bg-blue-500 rounded-lg p-1 text-white hover:bg-blue-400 cursor-pointer">
+      <button type="submit" className="bg-blue-500 rounded-lg pt-1 pb-1 pl-1.5 pr-1.5 text-white hover:bg-blue-400 cursor-pointer">
         Send
       </button>
       {/*Message for the user to know if the user's message was sent*/}

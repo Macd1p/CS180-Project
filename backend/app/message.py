@@ -97,17 +97,17 @@ def get_conversation(user_id):
         current_user_id = get_jwt_identity()
         current_user = User.objects(id=current_user_id).first()
         second_user = User.objects(id=user_id).first() #get second user from paramter
-        
+
         if not current_user or not second_user: #check if users exist
             return jsonify({"error": "user not found"}), 404
-            
+
         #get messages between these two users
         from mongoengine.queryset.visitor import Q
         messages = Message.objects( (Q(sender=current_user) & 
         Q(receiver=second_user)) |
         (Q(sender=second_user) & Q(receiver=current_user))
         ).order_by('created_at') 
-        
+
         chat_history = []
         for msg in messages: #append messages to chat history
             chat_history.append({
@@ -116,8 +116,15 @@ def get_conversation(user_id):
                 "message": msg.message,
                 "timestamp": msg.created_at
             })
-            
-        return jsonify({"messages": chat_history}), 200  #list of messages  
+
+        return jsonify({
+            "messages": chat_history,
+            "other_user": {
+                "username": second_user.username,
+                "profile_image": second_user.profile_image,
+                "id": str(second_user.id)
+            }
+        }), 200  #list of messages and user info
     except Exception as e:
         current_app.logger.error(f"error fetching conversation: {str(e)}")
         return jsonify({"error": "internal server error"}), 500
