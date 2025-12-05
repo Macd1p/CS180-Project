@@ -1,27 +1,25 @@
 "use client";
-
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../providers/AuthProvider";
 import { IoMdCheckmarkCircleOutline } from "react-icons/io";
 import { MdErrorOutline } from "react-icons/md";
 
 export default function AccountPage() {
+    //intializes components state and hooks
     const router = useRouter();
     const { isAuthenticated, isLoading } = useAuth();
-
-    const [formData, setFormData] = useState({
-        firstname: "",
-        lastname: "",
-        username: "",
-        email: "",
-        profile_image: "",
-    });
+    const [firstname, setFirstname] = useState("");
+    const [lastname, setLastname] = useState("");
+    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
+    const [profileImage, setProfileImage] = useState("");
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
+
     //redirect if not authenticated
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
@@ -41,21 +39,22 @@ export default function AccountPage() {
                         Authorization: `Bearer ${token}`,
                     },
                 });
-
                 if (!res.ok) throw new Error("failed to get profile");
 
                 const data = await res.json();
-                setFormData({
-                    firstname: data.firstname || "",
-                    lastname: data.lastname || "",
-                    username: data.username || "",
-                    email: data.email || "",
-                    profile_image: data.profile_image || "",
-                });
-            } catch (err) {
+                setFirstname(data.firstname || "");
+                setLastname(data.lastname || "");
+                setUsername(data.username || "");
+                setEmail(data.email || "");
+                setProfileImage(data.profile_image || "");
+            } 
+            
+            catch (err) {
                 console.error(err);
                 setError("could not load the profile.");
-            } finally {
+            } 
+            
+            finally {
                 setLoading(false);
             }
         };
@@ -63,35 +62,40 @@ export default function AccountPage() {
         fetchProfile();
     }, [isAuthenticated]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+    //handle input changes
+    const receiveFirstname = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFirstname(e.target.value);
+    };
+    const receiveLastname = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setLastname(e.target.value);
+    }; 
+    const receiveUsername = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setUsername(e.target.value);
     };
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const receiveImage = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setImageFile(e.target.files[0]);
         }
     };
-
+    //handle form submission
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
         setSuccess(false);
         setSaving(true);
-
         const token = localStorage.getItem("fms_token");
         if (!token) {
             setError("you are not logged in.");
             setSaving(false);
             return;
         }
-
-        let imageUrl = formData.profile_image;
+        let imageUrl = profileImage;
 
         //upload image if they want to change it
         if (imageFile) {
             try {
-                //get image signature
+                //get image signature from backend
                 const signRes = await fetch("/api/parking/generate-signature", {
                     method: "POST",
                     headers: { Authorization: `Bearer ${token}` },
@@ -117,7 +121,8 @@ export default function AccountPage() {
 
                 const uploadJson = await uploadRes.json();
                 imageUrl = uploadJson.secure_url;
-            } catch (err: any) {
+            } 
+            catch (err: any) {
                 setError(err.message || "image upload failed");
                 setSaving(false);
                 return;
@@ -131,9 +136,9 @@ export default function AccountPage() {
                     Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    firstname: formData.firstname,
-                    lastname: formData.lastname,
-                    username: formData.username,
+                    firstname: firstname,
+                    lastname: lastname,
+                    username: username,
                     profile_image: imageUrl,
                 }),
             });
@@ -150,7 +155,7 @@ export default function AccountPage() {
             }
 
             setSuccess(true);
-            setFormData(prev => ({ ...prev, profile_image: imageUrl }));
+            setProfileImage(imageUrl);
             setImageFile(null);
         } catch (err: any) {
             setError(err.message);
@@ -163,7 +168,6 @@ export default function AccountPage() {
     return (
         <main className="mx-auto max-w-2xl px-4 pt-24 pb-12">
             <h1 className="mb-8 text-3xl font-bold">Edit Account</h1>
-
             <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border bg-white p-6 shadow-sm">
                 {/* profile image */}
                 <div className="flex items-center gap-6">
@@ -174,9 +178,9 @@ export default function AccountPage() {
                                 alt="Preview"
                                 className="h-full w-full object-cover"
                             />
-                        ) : formData.profile_image ? (
+                        ) : profileImage ? (
                             <img
-                                src={formData.profile_image}
+                                src={profileImage}
                                 alt="Profile"
                                 className="h-full w-full object-cover"
                             />
@@ -193,7 +197,7 @@ export default function AccountPage() {
                         <input
                             type="file"
                             accept="image/*"
-                            onChange={handleImageChange}
+                            onChange={receiveImage}
                             className="text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-violet-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-violet-700 hover:file:bg-violet-100"
                         />
                     </div>
@@ -204,9 +208,9 @@ export default function AccountPage() {
                             First Name
                         </label>
                         <input
-                            name="firstname"
-                            value={formData.firstname}
-                            onChange={handleChange}
+                            type="text"
+                            value={firstname}
+                            onChange={receiveFirstname}
                             className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-violet-500"
                         />
                     </div>
@@ -215,9 +219,9 @@ export default function AccountPage() {
                             Last Name
                         </label>
                         <input
-                            name="lastname"
-                            value={formData.lastname}
-                            onChange={handleChange}
+                            type="text"
+                            value={lastname}
+                            onChange={receiveLastname}
                             className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-violet-500"
                         />
                     </div>
@@ -227,9 +231,9 @@ export default function AccountPage() {
                         Username
                     </label>
                     <input
-                        name="username"
-                        value={formData.username}
-                        onChange={handleChange}
+                        type="text"
+                        value={username}
+                        onChange={receiveUsername}
                         className="w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 focus:ring-violet-500"
                     />
                 </div>
