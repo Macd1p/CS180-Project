@@ -80,19 +80,14 @@ const SendNM = ({open, setOpen}:NewMessageModal) => {
       }, 2000);
 
     } catch (error) {
-      if (error instanceof Error) {
-        setError("Error: " + error.message);
-        setSuccess(false);
-      } else {
         setError("An error has occurred.");
         setSuccess(false);
-      }
     }
   };
 
   return (
     <Dialog open={open} onClose={() => setOpen(false)}>
-      <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
+      <div className="fixed inset-0 flex items-center justify-center backdrop-brightness-50">
           <DialogPanel className="border bg-white p-5 space-y-1 w-100">
             <DialogTitle className="font-semibold text-xl underline">
               New Message

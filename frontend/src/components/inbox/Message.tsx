@@ -1,11 +1,12 @@
 import InboxMessage from "./data";
 import Image from "next/image";
-import Link from "next/link";
 interface MessageInfo {
   message?: InboxMessage;
+  onClick?: () => void;
 }
 
-const Message = ({message}:MessageInfo) => {
+const Message = ({message, onClick}:MessageInfo) => {
+  {/*Got no message*/}
   if (!message) {
     return (
       <div className="w-1/5 border pt-1 pb-1 p-2 text-gray-400">
@@ -15,23 +16,23 @@ const Message = ({message}:MessageInfo) => {
   }
 
   return (
-    <Link href = {`/inbox/${message?.user_id  || ""}`} className="flex flex-col w-1/5 border pt-1 pb-1">
-      <div className="flex flex-row items-center pl-1 pt-1 pb-1">
-        <div className="relative w-10 h-10 rounded-full border bg-gray-100">
-          <Image src={message?.profile_image || "/images/default-avatar.png"} alt={message.username || "User"} fill className=" rounded-full border bg-gray-100 object-cover"/>
+    <div onClick={onClick} className="flex flex-col w-full border pl-1 pt-1 pb-1">
+      <div className="flex flex-row items-center pl-1 pt-1 pb-1 gap-1">
+        <div className="relative w-10 h-10">
+          <Image src={message?.profile_image || "/images/default-avatar.png"} alt={message.username || "User"} fill className="rounded-full border bg-gray-200 object-cover"/>
         </div>
         <div className="pl-1 pr-1">
-          {message.username} |
+          {message.username}
         </div>
         <div className="pt-0.5 text-sm text-gray-400">
-          {new Date(message.timestamp).toLocaleString("en-US", { timeZone: "America/Los_Angeles", hour: "2-digit", minute: "2-digit", hour12: true })}
+          | {new Date(message.timestamp).toLocaleString("en-US", {timeZone: "America/Los_Angeles", hour: "2-digit", minute: "2-digit", hour12: true})}
         </div>
       </div>
       
-      <div className="text-sm pl-1 text-gray-600">
-      {message.last_message}
+      <div className="text-sm pl-2 text-gray-600 mb-1">
+        {message.last_message}
       </div>
-    </Link>
+    </div>
   );
 };
 
